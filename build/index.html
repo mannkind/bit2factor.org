@@ -1,56 +1,56 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<!--
-		Donation Address: 1MnKnd2t7Tfpy1Cs8bm5DraC9HzrHmHoso
+  <head>
+    <!--
+    Donation Address: 1MnKnd2t7Tfpy1Cs8bm5DraC9HzrHmHoso
 
-		Notice of Copyrights and Licenses:
-		***********************************
-		The bit2factor.org project, software and embedded resources are copyright bit2factor.org. 
+    Notice of Copyrights and Licenses:
+    ***********************************
+    The bit2factor.org project, software and embedded resources are copyright bit2factor.org. 
 
-		The individual copyrights are included throughout the document along with their licenses.
-		Included JavaScript libraries are separated with HTML script tags.
+    The individual copyrights are included throughout the document along with their licenses.
+    Included JavaScript libraries are separated with HTML script tags.
 
-		Summary of JavaScript functions with a redistributable license:
+    Summary of JavaScript functions with a redistributable license:
     
     JavaScript            License
-		********************	***************
-		Array.prototype.map		Public Domain
-		window.Crypto			    BSD License
-		window.Crypto.Scrypt  MIT License
-		window.SecureRandom		BSD License
-		window.EllipticCurve	BSD License
-		window.BigInteger		  BSD License
-    window.Bitcoin			  MIT License
+    ********************  ***************
+    Array.prototype.map   Public Domain
+    window.Crypto         BSD License
+    window.Crypto.Scrypt  MIT License
+    window.SecureRandom   BSD License
+    window.EllipticCurve  BSD License
+    window.BigInteger     BSD License
+    window.Bitcoin        MIT License
     window.Bitcoin.BIP38  MIT License
 
     Framework             License
     *******************   **************
     Boostrap              Apache License
 
-		The bit2factor.org software is available under The MIT License (MIT)
-		Copyright (c) 2013 bit2factor.org
+    The bit2factor.org software is available under The MIT License (MIT)
+    Copyright (c) 2013 bit2factor.org
 
-		Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
-		associated documentation files (the "Software"), to deal in the Software without restriction, including 
-		without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or 
-		sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject 
-		to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
+    associated documentation files (the "Software"), to deal in the Software without restriction, including 
+    without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or 
+    sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject 
+    to the following conditions:
 
-		The above copyright notice and this permission notice shall be included in all copies or substantial 
-		portions of the Software.
+    The above copyright notice and this permission notice shall be included in all copies or substantial 
+    portions of the Software.
 
-		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
-		LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-		IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
-		WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
+    LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-		GitHub Repository: https://github.com/mannkind/bit2factor.org
-		-->
+    GitHub Repository: https://github.com/mannkind/bit2factor.org
+    -->
 
-		<title>Bit Two-Factor</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit Two-Factor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style type="text/css" id="css/bootstrap.min.css">
 /*!
@@ -200,213 +200,213 @@ Bitcoin.BIP38={isBIP38Format:function(a){a=a.toString();return(/^6P[123456789ABC
 <script type="text/javascript" id="js/bit2factor.js">
 $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTime);$("form").submit(function(p){p.preventDefault()});var o=function(p){p.parent().children("button").attr("disabled","disabled")};var m=function(p){p.parent().children("button").attr("disabled",null)};var n=function(p){p.button("loading")};var c=function(p){p.button("reset")};$("#rec-genint-gen").click(function(p){p.preventDefault();$this=$(this);$target=$(p.target);o($this);n($target);var q=$("#rec-genint-passphrase");if(q.val().length<=0){q.popover({content:"The passphrase is invalid"}).popover("show");m($this);c($target);return}Bitcoin.BIP38.GenerateIntermediatePointAsync(q.val(),null,null,function(r){$("#rec-genint-intermediate").val(r);m($this);c($target)})});$("#rec-decenc-decrypt").click(function(q){q.preventDefault();$this=$(this);$target=$(q.target);o($this);n($target);var p=$("#rec-decenc-privatekey");var r=$("#rec-decenc-passphrase");if(r.val().length<=0){r.popover({content:"The passphrase is invalid"}).popover("show");m($this);c($target);return}if(!Bitcoin.BIP38.isBIP38Format(p.val())){p.popover({content:"Invalid encrypted key"}).popover("show");m($this);c($target);return}Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(p.val(),r.val(),function(s){if(s!=null&&s.length>0){$("#rec-decenc-wif").val(new Bitcoin.ECKey(s).getBitcoinWalletImportFormat())}else{$("#rec-decenc-wif").val("Invalid encrypted key or passphrase")}m($this);c($target)})});$("#send-gencon-enc").click(function(q){q.preventDefault();$this=$(this);$target=$(q.target);o($this);n($target);var p=$("#send-gencon-intermediate");if(p.val().length<=0||p.val().substr(0,10)!="passphrase"){p.popover({content:"Invalid intermediate code"}).popover("show");m($this);c($target);return}try{Bitcoin.BIP38.GenerateECAddressAsync(p.val(),false,function(s,r,t){$("#send-gencon-address").val(r);$("#send-gencon-privatekey").val(t);$("#send-gencon-confirmation").val(s);m($this);c($target)})}catch(q){$("#send-gencon-address").val("Invalid intermediate code");$("#send-gencon-privatekey").val("Invalid intermediate code");$("#send-gencon-confirmation").val("Invalid intermediate code");m($this);c($target)}});$("#rec-vercon-verify").click(function(s){s.preventDefault();$this=$(this);$target=$(s.target);o($this);n($target);var r=$("#rec-vercon-modal");var q=$("#rec-vercon-verification");var p=$("#rec-vercon-confirmation");var t=$("#rec-vercon-passphrase");if(t.val().length<=0){t.popover({content:"The passphrase is invalid"}).popover("show");m($this);c($target);return}if(p.val().length<=0||p.val().substr(0,6)!="cfrm38"){p.popover({content:"The confirmation code is invalid"}).popover("show");m($this);c($target);return}try{Bitcoin.BIP38.ValidateConfirmationAsync(p.val(),t.val(),function(v,u){if(!v){q.text("The passphrase or confirmation code is invalid")}else{q.text("The address "+u+" is associated with your passphrase")}r.modal("show");m($this);c($target)})}catch(s){q.text("The passphrase or confirmation code is invalid");r.modal("show");m($this);c($target)}});$("#encgen-encrypt").click(function(p){p.preventDefault();$this=$(this);$target=$(p.target);o($this);n($target);var q=$("#encgen-passphrase");if(q.val().length<=0){q.popover({content:"Invalid passphrase"}).popover("show");m($this);c($target);return}Bitcoin.BIP38.GenerateIntermediatePointAsync(q.val(),null,null,function(r){Bitcoin.BIP38.GenerateECAddressAsync(r,false,function(t,s,u){$("#encgen-address").val(s);$("#encgen-privkey").val(u);m($this);c($target)})})});var h;h={};window.location.hash.replace(/[#&]+([^=&]+)=([^&]*)/g,function(r,q,p){return h[q]=p});if(h.runtests=="true"){console.log("Running tests...");function k(r,q){q=q||function(){};if(r.length===0){q()}else{var p=r.shift();p(function(){k(r,q)})}}function l(r,p,q,s){s=s||function(){};if(r===p){s()}else{q(r,function(){l(++r,p,q,s)})}}function b(t,p,s){var r=[];for(var q in t){r.push(q)}l(0,r.length,function(u,v){p(r[u],v)},s)}var e=[["6PRVWUbkzzsbcVac2qwfssoUJAN1Xhrg6bNk8J7Nzm5H7kxEbn2Nh2ZoGg","TestingOneTwoThree","5KN7MzqK5wt2TP1fQCYyHBtDrXdJuXbUzm4A9rKAteGu3Qi5CVR"],["6PRNFFkZc2NZ6dJqFfhRoFNMR9Lnyj7dYGrzdgXXVMXcxoKTePPX1dWByq","Satoshi","5HtasZ6ofTHP6HCwTqTkLDuLQisYPah7aUnSKfC7h4hMUVw2gi5"],["6PYNKZ1EAgYgmQfmNVamxyXVWHzK5s6DGhwP4J5o44cvXdoY7sRzhtpUeo","TestingOneTwoThree","L44B5gGEpqEDRS9vVPz7QT35jcBG2r3CZwSwQ4fCewXAhAhqGVpP"],["6PYLtMnXvfG3oJde97zRyLYFZCYizPU5T3LwgdYJz1fRhh16bU7u6PPmY7","Satoshi","KwYgW8gcxj1JWJXhPSu4Fqwzfhp5Yfi42mdYmMa4XqK7NJxXUSK7"],["6PfQu77ygVyJLZjfvMLyhLMQbYnu5uguoJJ4kMCLqWwPEdfpwANVS76gTX","TestingOneTwoThree","5K4caxezwjGCGfnoPTZ8tMcJBLB7Jvyjv4xxeacadhq8nLisLR2"],["6PfLGnQs6VZnrNpmVKfjotbnQuaJK4KZoPFrAjx1JMJUa1Ft8gnf5WxfKd","Satoshi","5KJ51SgxWaAYR13zd9ReMhJpwrcX47xTJh2D3fGPG9CM8vkv5sH"],["6PgNBNNzDkKdhkT6uJntUXwwzQV8Rr2tZcbkDcuC9DZRsS6AtHts4Ypo1j","MOLON LABE","5JLdxTtcTHcfYcmJsNVy1v2PMDx432JPoYcBTVVRHpPaxUrdtf8","cfrm38V8aXBn7JWA1ESmFMUn6erxeBGZGAxJPY4e36S9QWkzZKtaVqLNMgnifETYw7BPwWC9aPD"],["6PgGWtx25kUg8QWvwuJAgorN6k9FbE25rv5dMRwu5SKMnfpfVe5mar2ngH",Crypto.charenc.UTF8.bytesToString([206,156,206,159,206,155,206,169,206,157,32,206,155,206,145,206,146,206,149]),"5KMKKuUmAkiNbA3DazMQiLfDq47qs8MAEThm4yL8R2PhV1ov33D","cfrm38V8G4qq2ywYEFfWLD5Cc6msj9UwsG2Mj4Z6QdGJAFQpdatZLavkgRd1i4iBMdRngDqDs51"]];var i=function(r,p,q){Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(r[0],r[1],function(s){if(s.constructor==Error){console.log("fail testBip38Decrypt #"+p+", error: "+s.message)}else{var u=new Bitcoin.ECKey(s);var t=!r[2].substr(0,1).match(/[LK]/)?u.getBitcoinWalletImportFormat():u.getBitcoinWalletImportFormatCompressed();if(t!=r[2]){console.log("fail testBip38Decrypt #"+p)}else{console.log("pass testBip38Decrypt #"+p)}}q()})};var a=function(s,q,p,r){Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(s[2],s[1],q,function(t){if(t===s[0]){console.log("pass testBip38Encrypt #"+p)}else{console.log("fail testBip38Encrypt #"+p);console.log("testBip38Encrypt fail #%d: expected %s\nreceived %s",p,s[0],t)}r()})};var d=function(q,p,s){var r=(new Bitcoin.ECKey(false)).getBitcoinWalletImportFormat();Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(r,"testing",p,function(t){Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(t,"testing",function(v){var u=(new Bitcoin.ECKey(v)).getBitcoinWalletImportFormat();if(u===r){console.log("pass cycleBip38 test #"+q)}else{console.log("fail cycleBip38 test: "+r);console.log("cycleBip38 fail: private key: %s\nencrypted key: %s\ndecrypted key: %s",r,t,u)}s()})})};var j=function(q){var p=Math.random().toString(36).substr(2);Bitcoin.BIP38.GenerateIntermediatePointAsync(p,null,null,function(r){Bitcoin.BIP38.GenerateECAddressAsync(r,false,function(u,s,t){Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(t,p,function(v){if(v.constructor==Error){console.log("fail testBip38Intermediate, error: "+v.message)}else{var x=new Bitcoin.ECKey(v);var w=x.getBitcoinAddress();if(s!==x.getBitcoinAddress()){console.log("fail testBip38Intermediate")}else{console.log("pass testBip38Intermediate")}}q()})})})};var f=function(r,p,q){if(typeof r[3]!="undefined"){Bitcoin.BIP38.ValidateConfirmationAsync(r[3],r[1],function(t,s){if(t){console.log("pass testBip38confirmation #"+p)}else{console.log("fail testBip38confirmation #"+p)}q()})}else{q()}};function g(p){return function(){setTimeout(p,1000)}}k([function(p){l(0,4,function(q,r){a(e[q],q>=2,q,g(r))},g(p))},function(p){l(6,8,function(q,r){f(e[q],q,g(r))},g(p))},function(p){l(0,e.length,function(q,r){i(e[q],q,g(r))},g(p))},function(p){l(0,2,function(q,r){d(q,q%2?true:false,g(r))},g(p))},function(p){l(0,5,function(q,r){j(g(r))},p)}],function(){console.log("... done running tests")})}});
 </script>
-	</head>
-	<body>
-		<div class="container">
-			<div class="row">&nbsp;</div>
-			<div class="row">
-				<div class="span12">
-					<h2>Two-Factor Bitcoin</h2>
-					<p>The <em>only</em> way to do a two-party transaction between untrusted peers!</p>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">&nbsp;</div>
+      <div class="row">
+        <div class="span12">
+          <h2>Two-Factor Bitcoin</h2>
+          <p>The <em>only</em> way to do a two-party transaction between untrusted peers!</p>
 
-					<div class="accordion" id="accordion2">
+          <div class="accordion" id="accordion2">
 
-						<div class="accordion-group">
-					    	<div class="accordion-heading">
-					      		<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
-					        		Generate Intermediate Code
-					      		</a>
-					    	</div>
-					    	<div id="collapseOne" class="accordion-body collapse in">
-					      		<div class="accordion-inner">
-					        		<form class="form-horizontal">
-								    	<div class="control-group">
-									    	<label class="control-label" for="rec-genint-passphrase">Passphrase</label>
-								    		<div class="controls">
-								    			<input autocomplete="off" id="rec-genint-passphrase" placeholder=" Enter a passphrase" class="span4" />
-								    		</div>
-										</div>
-					          			<div class="form-actions">
-					            			<button id="rec-genint-gen" class="btn btn-primary" data-loading-text=" ...Generating ...">Generate Intermediate Code</a>
-					          			</div>
-								    	<div class="control-group">
-									    	<label class="control-label" for="rec-genint-intermediate">Intermediate Code</label>
-								    		<div class="controls">
-								    			<input id="rec-genint-intermediate" placeholder=" ... not yet generated ... " class="span4" />
-							    			</div>
-										</div>
-									</form>
-								</div>
-							</div>
-						</div>
-
-
-						<div class="accordion-group">
-					    	<div class="accordion-heading">
-					      		<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
-					        		Generate Address, Confirmation Code &amp; Private Key
-					      		</a>
-					    	</div>
-					    	<div id="collapseTwo" class="accordion-body collapse">
-					      		<div class="accordion-inner">
-					        		<form class="form-horizontal">
-								  		<div class="control-group">
-								  			<label class="control-label" for="send-gencon-intermediate">Intermediate Code</label>
-								  			<div class="controls">
-								    			<input id="send-gencon-intermediate" placeholder=" Enter the intermediate code" class="span4" />
-								    		</div>
-								    	</div>
-					          			<div class="form-actions">
-					            			<button id="send-gencon-enc" class="btn btn-primary" data-loading-text=" ...Generating ...">Generate All</a>
-					          			</div>			    	
-								  		<div class="control-group">
-								  			<label class="control-label" for="send-gencon-address">Bitcoin Address</label>
-								  			<div class="controls">
-								    			<input id="send-gencon-address" placeholder=" ... not yet generated ... " class="span4" />
-								    		</div>
-								    	</div>
-								  		<div class="control-group">
-								  			<label class="control-label" for="send-gencon-confirmation">Confirmation Code</label>
-								  			<div class="controls">
-								    			<input id="send-gencon-confirmation" placeholder=" ... not yet generated ... " class="span4" />
-								    		</div>
-								    	</div>
-								  		<div class="control-group">
-								  			<label class="control-label" for="send-gencon-privatekey">Encrypted Private Key</label>
-								  			<div class="controls">
-								    			<input id="send-gencon-privatekey" placeholder=" ... not yet generated ... " class="span4" />
-								    		</div>
-								    	</div>
-									</form>
-								</div>
-							</div>
-						</div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+                      Generate Intermediate Code
+                    </a>
+                </div>
+                <div id="collapseOne" class="accordion-body collapse in">
+                    <div class="accordion-inner">
+                      <form class="form-horizontal">
+                      <div class="control-group">
+                        <label class="control-label" for="rec-genint-passphrase">Passphrase</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="rec-genint-passphrase" placeholder=" Enter a passphrase" class="span4" />
+                        </div>
+                    </div>
+                          <div class="form-actions">
+                            <button id="rec-genint-gen" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate Intermediate Code</a>
+                          </div>
+                      <div class="control-group">
+                        <label class="control-label" for="rec-genint-intermediate">Intermediate Code</label>
+                        <div class="controls">
+                          <input id="rec-genint-intermediate" placeholder=" ... not yet generated ... " class="span4" />
+                        </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
 
 
-						<div class="accordion-group">
-					    	<div class="accordion-heading">
-					      		<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseThree">
-					        		Verify Confirmation Code
-					      		</a>
-					    	</div>
-					    	<div id="collapseThree" class="accordion-body collapse">
-					      		<div class="accordion-inner">
-					        		<form class="form-horizontal">
-								  		<div class="control-group">
-								  			<label class="control-label" for="rec-vercon-passphrase">Passphrase</label>
-								  			<div class="controls">
-								    			<input autocomplete="off" id="rec-vercon-passphrase" placeholder=" Enter your passphrase" class="span4" />
-								    		</div>
-								    	</div>
-								  		<div class="control-group">
-								  			<label class="control-label" for="rec-vercon-confirmation">Confirmation Code</label>
-								  			<div class="controls">
-								    			<input autocomplete="off" id="rec-vercon-confirmation" placeholder=" Enter the confirmation code"  class="span4" />
-								    		</div>
-								    	</div>
-					          			<div class="form-actions">
-					            			<button id="rec-vercon-verify" class="btn btn-primary" data-loading-text=" ...Verifying ...">Verify Confirmation Code</a>
-					          			</div>
-									</form>
-								</div>
-							</div>
-						</div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                      Generate Address, Confirmation Code &amp; Private Key
+                    </a>
+                </div>
+                <div id="collapseTwo" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                      <form class="form-horizontal">
+                      <div class="control-group">
+                        <label class="control-label" for="send-gencon-intermediate">Intermediate Code</label>
+                        <div class="controls">
+                          <input id="send-gencon-intermediate" placeholder=" Enter the intermediate code" class="span4" />
+                        </div>
+                      </div>
+                          <div class="form-actions">
+                            <button id="send-gencon-enc" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate All</a>
+                          </div>            
+                      <div class="control-group">
+                        <label class="control-label" for="send-gencon-address">Bitcoin Address</label>
+                        <div class="controls">
+                          <input id="send-gencon-address" placeholder=" ... not yet generated ... " class="span4" />
+                        </div>
+                      </div>
+                      <div class="control-group">
+                        <label class="control-label" for="send-gencon-confirmation">Confirmation Code</label>
+                        <div class="controls">
+                          <input id="send-gencon-confirmation" placeholder=" ... not yet generated ... " class="span4" />
+                        </div>
+                      </div>
+                      <div class="control-group">
+                        <label class="control-label" for="send-gencon-privatekey">Encrypted Private Key</label>
+                        <div class="controls">
+                          <input id="send-gencon-privatekey" placeholder=" ... not yet generated ... " class="span4" />
+                        </div>
+                      </div>
+                  </form>
+                </div>
+              </div>
+            </div>
 
 
-						<div class="accordion-group">
-					    	<div class="accordion-heading">
-					      		<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseFour">
-					        		Decrypt Private Key
-					      		</a>
-					    	</div>
-					    	<div id="collapseFour" class="accordion-body collapse">
-					      		<div class="accordion-inner">
-					        		<form class="form-horizontal">
-								  		<div class="control-group">
-								  			<label class="control-label" for="rec-decenc-passphrase">Passphrase</label>
-								  			<div class="controls">
-								    			<input autocomplete="off" id="rec-decenc-passphrase" placeholder=" Enter your passphrase" class="span4" />
-								    		</div>
-								    	</div>
-								  		<div class="control-group">
-								  			<label class="control-label" for="rec-decenc-privatekey">Encrypted Private Key</label>
-								  			<div class="controls">
-								    			<input autocomplete="off" id="rec-decenc-privatekey" placeholder=" Enter the encrypted private key" class="span4" />
-								    		</div>
-								    	</div>
-					          			<div class="form-actions">
-					            			<button id="rec-decenc-decrypt" class="btn btn-primary" data-loading-text=" ...Decrypting ...">Decrypt Private Key</a>
-					          			</div>
-								  		<div class="control-group">
-								  			<label class="control-label" for="rec-decenc-privatekey">Private Key (WIF)</label>
-								  			<div class="controls">
-								    			<input autocomplete="off" id="rec-decenc-wif" placeholder=" ... not yet decrypted ..." class="span4" />
-								    		</div>
-								    	</div>
-									</form>
-								</div>
-							</div>
-						</div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseThree">
+                      Verify Confirmation Code
+                    </a>
+                </div>
+                <div id="collapseThree" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                      <form class="form-horizontal">
+                      <div class="control-group">
+                        <label class="control-label" for="rec-vercon-passphrase">Passphrase</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="rec-vercon-passphrase" placeholder=" Enter your passphrase" class="span4" />
+                        </div>
+                      </div>
+                      <div class="control-group">
+                        <label class="control-label" for="rec-vercon-confirmation">Confirmation Code</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="rec-vercon-confirmation" placeholder=" Enter the confirmation code"  class="span4" />
+                        </div>
+                      </div>
+                          <div class="form-actions">
+                            <button id="rec-vercon-verify" class="btn btn-primary" data-loading-text=" ... Verifying ... ">Verify Confirmation Code</a>
+                          </div>
+                  </form>
+                </div>
+              </div>
+            </div>
 
-						<div class="accordion-group">
-					    	<div class="accordion-heading">
-					      		<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseFive">
-					        		Generate &amp; Encrypt Private Key
-					      		</a>
-					    	</div>
-					    	<div id="collapseFive" class="accordion-body collapse">
-					      		<div class="accordion-inner">
-					        		<form class="form-horizontal">
-								  		<div class="control-group">
-								  			<label class="control-label" for="encgen-passphrase">Passphrase</label>
-								  			<div class="controls">
-								    			<input autocomplete="off" id="encgen-passphrase" placeholder=" Enter your passphrase" class="span4" />
-								    		</div>
-								    	</div>
-					          			<div class="form-actions">
-					            			<button id="encgen-encrypt" class="btn btn-primary" data-loading-text=" ...Generating ...">Generate &amp; Encrypt Private Key</a>
-					          			</div>
-								  		<div class="control-group">
-								  			<label class="control-label" for="encgen-address">Bitcoin Address</label>
-								  			<div class="controls">
-								    			<input id="encgen-address" placeholder=" ... not yet generated ... " class="span4" />
-								    		</div>
-								    	</div>
-								  		<div class="control-group">
-								  			<label class="control-label" for="encgen-privkey">Encrypted Key</label>
-								  			<div class="controls">
-								    			<input id="encgen-privkey" placeholder=" ... not yet generated ... " class="span4" />
-								    		</div>
-								    	</div>
-									</form>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="span12">
-					<hr />
-					<p><small>
-						&copy;2013 Bit2Factor<span class="pull-right">
-						<a href="https://github.com/mannkind/bit2factor.org">View Source Code</a></span></small>
-					</p>
-				</div>
-			</div>
-		</div>
 
-		<div id="rec-vercon-modal" class="modal hide fade">
-			<div class="modal-header">
-		    	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		    	<h3>Modal header</h3>
-		  	</div>
-			<div class="modal-body">
-		    	<p id="rec-vercon-verification"> ... not yet verified ... </p>
-		  	</div>
-			<div class="modal-footer">
-		    	<a href="#" class="btn" data-dismiss="modal">Close</a>
-		  	</div>
-		</div>
-	</body>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseFour">
+                      Decrypt Private Key
+                    </a>
+                </div>
+                <div id="collapseFour" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                      <form class="form-horizontal">
+                      <div class="control-group">
+                        <label class="control-label" for="rec-decenc-passphrase">Passphrase</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="rec-decenc-passphrase" placeholder=" Enter your passphrase" class="span4" />
+                        </div>
+                      </div>
+                      <div class="control-group">
+                        <label class="control-label" for="rec-decenc-privatekey">Encrypted Private Key</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="rec-decenc-privatekey" placeholder=" Enter the encrypted private key" class="span4" />
+                        </div>
+                      </div>
+                          <div class="form-actions">
+                            <button id="rec-decenc-decrypt" class="btn btn-primary" data-loading-text=" ... Decrypting ... ">Decrypt Private Key</a>
+                          </div>
+                      <div class="control-group">
+                        <label class="control-label" for="rec-decenc-privatekey">Private Key (WIF)</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="rec-decenc-wif" placeholder=" ... not yet decrypted ... " class="span4" />
+                        </div>
+                      </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseFive">
+                      Generate &amp; Encrypt Private Key
+                    </a>
+                </div>
+                <div id="collapseFive" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                      <form class="form-horizontal">
+                      <div class="control-group">
+                        <label class="control-label" for="encgen-passphrase">Passphrase</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="encgen-passphrase" placeholder=" Enter your passphrase" class="span4" />
+                        </div>
+                      </div>
+                          <div class="form-actions">
+                            <button id="encgen-encrypt" class="btn btn-primary" data-loading-text=" ...Generating ... ">Generate &amp; Encrypt Private Key</a>
+                          </div>
+                      <div class="control-group">
+                        <label class="control-label" for="encgen-address">Bitcoin Address</label>
+                        <div class="controls">
+                          <input id="encgen-address" placeholder=" ... not yet generated ... " class="span4" />
+                        </div>
+                      </div>
+                      <div class="control-group">
+                        <label class="control-label" for="encgen-privkey">Encrypted Key</label>
+                        <div class="controls">
+                          <input id="encgen-privkey" placeholder=" ... not yet generated ... " class="span4" />
+                        </div>
+                      </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="span12">
+          <hr />
+          <p><small>
+            &copy;2013 Bit2Factor<span class="pull-right">
+            <a href="https://github.com/mannkind/bit2factor.org">View Source Code</a></span></small>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="rec-vercon-modal" class="modal hide fade">
+      <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h3>Verification Result</h3>
+        </div>
+      <div class="modal-body">
+          <p id="rec-vercon-verification"> ... not yet verified ... </p>
+        </div>
+      <div class="modal-footer">
+          <a href="#" class="btn" data-dismiss="modal">Close</a>
+        </div>
+    </div>
+  </body>
 </html>
