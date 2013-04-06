@@ -4,34 +4,29 @@ $(function() {
 
 	var disableButtons = function(item) { item.parent().children('button').attr('disabled', 'disabled'); };
 	var enableButtons = function(item) { item.parent().children('button').attr('disabled', null); };
-	var enableSpinner = function(item) { 
-    	item.button('loading');
-	};
-	var disableSpinner = function(item) { 
-    	item.button('reset');
-	};
+	var enableSpinner = function(item) { item.button('loading'); };
+	var disableSpinner = function(item) { item.button('reset'); };
+	var startProcess = function($this, $target) { disableButtons($this); enableSpinner($target); };
+	var endProcess = function($this, $target) { enableButtons($this); disableSpinner($target); };
 
 	$('#rec-genint-gen').click(function(e) {
 		e.preventDefault();
 
 		$this = $(this);
 		$target = $(e.target);
-		disableButtons($this);
-		enableSpinner($target);
+		startProcess($this, $target);
 
 		var passphrase = $('#rec-genint-passphrase');
 
 		if (passphrase.val().length <= 0) {
 			passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 			return;
 		}
 
 		Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
 			$('#rec-genint-intermediate').val(intermediate);
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 		});
 	});
 
@@ -40,35 +35,34 @@ $(function() {
 
 		$this = $(this);
 		$target = $(e.target);
-		disableButtons($this);
-		enableSpinner($target);
+		startProcess($this, $target);
 		
 		var encryptedKey = $('#rec-decenc-privatekey');
 		var passphrase = $('#rec-decenc-passphrase');
 
 		if (passphrase.val().length <= 0) {
 			passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 			return;
 		}
 
 		if (!Bitcoin.BIP38.isBIP38Format(encryptedKey.val())) {
 			encryptedKey.popover({ content: 'Invalid encrypted key' }).popover('show');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 			return;
 		}
 
 		Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(encryptedKey.val(), passphrase.val(), function(privateKeyByteArray) {
 			if (privateKeyByteArray != null && privateKeyByteArray.length > 0) {
-				$('#rec-decenc-wif').val(new Bitcoin.ECKey(privateKeyByteArray).getBitcoinWalletImportFormat());	
+				var btc = new Bitcoin.ECKey(privateKeyByteArray);
+				$('#rec-decenc-wif').val(btc.getBitcoinWalletImportFormat());
+				$('#rec-decenc-address').val(btc.getBitcoinAddress());	
 			} else {
 				$('#rec-decenc-wif').val('Invalid encrypted key or passphrase');	
+				$('#rec-decenc-address').val('Invalid encrypted key or passphrase');	
 			}
 			
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
         });
 	});
 
@@ -77,15 +71,13 @@ $(function() {
 
 		$this = $(this);
 		$target = $(e.target);
-		disableButtons($this);
-		enableSpinner($target);
+		startProcess($this, $target);
 
 		var intermediate = $('#send-gencon-intermediate');
 
 		if (intermediate.val().length <= 0 || intermediate.val().substr(0, 10) != 'passphrase') { 
 			intermediate.popover({ content: 'Invalid intermediate code' }).popover('show');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 			return;
 		}
 
@@ -94,15 +86,13 @@ $(function() {
 				$('#send-gencon-address').val(generatedAddress);
 				$('#send-gencon-privatekey').val(encryptedKey);
 				$('#send-gencon-confirmation').val(confirmationCode);
-				enableButtons($this);
-				disableSpinner($target);
+				endProcess($this, $target);
 			});
 		} catch (e) {
 			$('#send-gencon-address').val('Invalid intermediate code');
 			$('#send-gencon-privatekey').val('Invalid intermediate code');
 			$('#send-gencon-confirmation').val('Invalid intermediate code');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 		}
 	});
 
@@ -111,8 +101,7 @@ $(function() {
 
 		$this = $(this);
 		$target = $(e.target);
-		disableButtons($this);
-		enableSpinner($target);
+		startProcess($this, $target);
 
 		var modal = $('#rec-vercon-modal');
 		var verification = $('#rec-vercon-verification');
@@ -121,15 +110,13 @@ $(function() {
 
 		if (passphrase.val().length <= 0) {
 			passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 			return;
 		}
 
 		if (confirmation.val().length <= 0 || confirmation.val().substr(0, 6) != 'cfrm38') {
 			confirmation.popover({ content: 'The confirmation code is invalid' }).popover('show');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 			return;
 		} 
 
@@ -141,14 +128,12 @@ $(function() {
 					verification.text('The address ' + generatedAddress + ' is associated with your passphrase');
 	        	}
 	        	modal.modal('show');
-				enableButtons($this);
-				disableSpinner($target);
+				endProcess($this, $target);
 	        });
     	} catch (e) {
     		verification.text('The passphrase or confirmation code is invalid');
     		modal.modal('show');
-    		enableButtons($this);
-			disableSpinner($target);
+    		endProcess($this, $target);
     	}
 	});
 
@@ -157,26 +142,42 @@ $(function() {
 
 		$this = $(this);
 		$target = $(e.target);
-		disableButtons($this);
-		enableSpinner($target);
+		startProcess($this, $target);
 
 		var passphrase = $('#encgen-passphrase');
+		var privatekey = $('#encgen-uprivkey');
 		
 		if (passphrase.val().length <= 0) {
 			passphrase.popover({ content: 'Invalid passphrase' }).popover('show');
-			enableButtons($this);
-			disableSpinner($target);
+			endProcess($this, $target);
 			return;
 		}
 
-		Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
-			Bitcoin.BIP38.GenerateECAddressAsync(intermediate, false, function(confirmationCode, generatedAddress, encryptedKey) {
-				$('#encgen-address').val(generatedAddress);
-				$('#encgen-privkey').val(encryptedKey);
-				enableButtons($this);
-				disableSpinner($target);
+		if (privatekey.val().length != 0 && 
+			(!/^5[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{50}$/.test(privatekey.val()) &&
+			 !/^[LK][123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{51}$/.test(privatekey.val()))) {
+
+			privatekey.popover({ content: 'Invalid private key' }).popover('show');
+			endProcess($this, $target);
+			return;
+		}
+
+		if (privatekey.val().length != 0) {
+			var compressed = /^[LK]/.test(privatekey.val());
+			Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(privatekey.val(), passphrase.val(), compressed, function(encryptedKey, generatedAddress) {
+					$('#encgen-address').val(generatedAddress);
+					$('#encgen-privkey').val(encryptedKey);
+					endProcess($this, $target);
 			});
-		});
+		} else {
+			Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
+				Bitcoin.BIP38.GenerateECAddressAsync(intermediate, false, function(confirmationCode, generatedAddress, encryptedKey) {
+					$('#encgen-address').val(generatedAddress);
+					$('#encgen-privkey').val(encryptedKey);
+					endProcess($this, $target);
+				});
+			});
+		}
 	});
 
 

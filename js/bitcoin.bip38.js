@@ -201,7 +201,7 @@ Bitcoin.BIP38 = {
 
 			encryptedKey = encryptedKey.concat(Bitcoin.Util.dsha256(encryptedKey).slice(0,4));
 
-			callback(Bitcoin.Base58.encode(encryptedKey));
+			callback(Bitcoin.Base58.encode(encryptedKey), address);
 		});
 	},
 	GenerateECAddressAsync: function(intermediate, compressed, callback) {

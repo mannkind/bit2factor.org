@@ -92,7 +92,7 @@
                       <div class="control-group">
                         <label class="control-label" for="rec-genint-passphrase">Passphrase</label>
                         <div class="controls">
-                          <input autocomplete="off" id="rec-genint-passphrase" placeholder=" Enter a passphrase" class="span4" />
+                          <input autocomplete="off" id="rec-genint-passphrase" placeholder=" Enter a passphrase" class="span8" />
                         </div>
                     </div>
                           <div class="form-actions">
@@ -101,7 +101,7 @@
                       <div class="control-group">
                         <label class="control-label" for="rec-genint-intermediate">Intermediate Code</label>
                         <div class="controls">
-                          <input id="rec-genint-intermediate" placeholder=" ... not yet generated ... " class="span4" />
+                          <input id="rec-genint-intermediate" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
                     </div>
                   </form>
@@ -122,7 +122,7 @@
                       <div class="control-group">
                         <label class="control-label" for="send-gencon-intermediate">Intermediate Code</label>
                         <div class="controls">
-                          <input id="send-gencon-intermediate" placeholder=" Enter the intermediate code" class="span4" />
+                          <input id="send-gencon-intermediate" placeholder=" Enter the intermediate code" class="span8" />
                         </div>
                       </div>
                           <div class="form-actions">
@@ -131,19 +131,19 @@
                       <div class="control-group">
                         <label class="control-label" for="send-gencon-address">Bitcoin Address</label>
                         <div class="controls">
-                          <input id="send-gencon-address" placeholder=" ... not yet generated ... " class="span4" />
+                          <input id="send-gencon-address" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
                       </div>
                       <div class="control-group">
                         <label class="control-label" for="send-gencon-confirmation">Confirmation Code</label>
                         <div class="controls">
-                          <input id="send-gencon-confirmation" placeholder=" ... not yet generated ... " class="span4" />
+                          <input id="send-gencon-confirmation" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
                       </div>
                       <div class="control-group">
                         <label class="control-label" for="send-gencon-privatekey">Encrypted Private Key</label>
                         <div class="controls">
-                          <input id="send-gencon-privatekey" placeholder=" ... not yet generated ... " class="span4" />
+                          <input id="send-gencon-privatekey" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
                       </div>
                   </form>
@@ -164,13 +164,13 @@
                       <div class="control-group">
                         <label class="control-label" for="rec-vercon-passphrase">Passphrase</label>
                         <div class="controls">
-                          <input autocomplete="off" id="rec-vercon-passphrase" placeholder=" Enter your passphrase" class="span4" />
+                          <input autocomplete="off" id="rec-vercon-passphrase" placeholder=" Enter your passphrase" class="span8" />
                         </div>
                       </div>
                       <div class="control-group">
                         <label class="control-label" for="rec-vercon-confirmation">Confirmation Code</label>
                         <div class="controls">
-                          <input autocomplete="off" id="rec-vercon-confirmation" placeholder=" Enter the confirmation code"  class="span4" />
+                          <input autocomplete="off" id="rec-vercon-confirmation" placeholder=" Enter the confirmation code"  class="span8" />
                         </div>
                       </div>
                           <div class="form-actions">
@@ -194,22 +194,28 @@
                       <div class="control-group">
                         <label class="control-label" for="rec-decenc-passphrase">Passphrase</label>
                         <div class="controls">
-                          <input autocomplete="off" id="rec-decenc-passphrase" placeholder=" Enter your passphrase" class="span4" />
+                          <input autocomplete="off" id="rec-decenc-passphrase" placeholder=" Enter your passphrase" class="span8" />
                         </div>
                       </div>
                       <div class="control-group">
                         <label class="control-label" for="rec-decenc-privatekey">Encrypted Private Key</label>
                         <div class="controls">
-                          <input autocomplete="off" id="rec-decenc-privatekey" placeholder=" Enter the encrypted private key" class="span4" />
+                          <input autocomplete="off" id="rec-decenc-privatekey" placeholder=" Enter the encrypted private key" class="span8" />
                         </div>
                       </div>
-                          <div class="form-actions">
-                            <button id="rec-decenc-decrypt" class="btn btn-primary" data-loading-text=" ... Decrypting ... ">Decrypt Private Key</a>
-                          </div>
+                      <div class="form-actions">
+                        <button id="rec-decenc-decrypt" class="btn btn-primary" data-loading-text=" ... Decrypting ... ">Decrypt Private Key</a>
+                      </div>
                       <div class="control-group">
-                        <label class="control-label" for="rec-decenc-privatekey">Private Key (WIF)</label>
+                        <label class="control-label" for="rec-decenc-address">Address</label>
                         <div class="controls">
-                          <input autocomplete="off" id="rec-decenc-wif" placeholder=" ... not yet decrypted ... " class="span4" />
+                          <input autocomplete="off" id="rec-decenc-address" placeholder=" ... not yet decrypted ... " class="span8" />
+                        </div>
+                      </div>
+                      <div class="control-group">
+                        <label class="control-label" for="rec-decenc-wif">Private Key (WIF)</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="rec-decenc-wif" placeholder=" ... not yet decrypted ... " class="span8" />
                         </div>
                       </div>
                   </form>
@@ -231,22 +237,28 @@
                       <div class="control-group">
                         <label class="control-label" for="encgen-passphrase">Passphrase</label>
                         <div class="controls">
-                          <input autocomplete="off" id="encgen-passphrase" placeholder=" Enter your passphrase" class="span4" />
+                          <input autocomplete="off" id="encgen-passphrase" placeholder=" Enter your passphrase" class="span8" />
                         </div>
                       </div>
-                          <div class="form-actions">
-                            <button id="encgen-encrypt" class="btn btn-primary" data-loading-text=" ...Generating ... ">Generate &amp; Encrypt Private Key</a>
-                          </div>
+                      <div class="control-group">
+                        <label class="control-label" for="encgen-uprivkey">Private Key</label>
+                        <div class="controls">
+                          <input autocomplete="off" id="encgen-uprivkey" placeholder=" (Optional) Enter a Private Key to Encrypt" class="span8" />
+                        </div>
+                      </div>
+                      <div class="form-actions">
+                        <button id="encgen-encrypt" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate &amp; Encrypt Private Key</a>
+                      </div>
                       <div class="control-group">
                         <label class="control-label" for="encgen-address">Bitcoin Address</label>
                         <div class="controls">
-                          <input id="encgen-address" placeholder=" ... not yet generated ... " class="span4" />
+                          <input id="encgen-address" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
                       </div>
                       <div class="control-group">
                         <label class="control-label" for="encgen-privkey">Encrypted Key</label>
                         <div class="controls">
-                          <input id="encgen-privkey" placeholder=" ... not yet generated ... " class="span4" />
+                          <input id="encgen-privkey" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
                       </div>
                   </form>
