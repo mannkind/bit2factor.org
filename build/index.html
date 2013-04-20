@@ -207,12 +207,11 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
       <div class="row">
         <div class="span12">
           <h2>Two-Factor Bitcoin</h2>
-          <p>The <em>only</em> way to do a two-party transaction between untrusted peers!</p>
-          <p>An implementation of <a href="https://en.bitcoin.it/wiki/BIP_0038">BIP38</a></p>
+          <p>The <em>only</em> way to do a two-party transaction between untrusted peers (an implementation of <a href="https://en.bitcoin.it/wiki/BIP_0038">BIP38</a>)</p>
           <p>If you're looking for to do Bitcoin Escrow, checkout <a href="http://www.bitescrow.org">bitescrow.org</a></p>
 
           <div class="accordion" id="accordion2">
-
+            <h3>Two-Party Escrow</h3>
             <div class="accordion-group">
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
@@ -221,24 +220,28 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
                 </div>
                 <div id="collapseOne" class="accordion-body collapse in">
                     <div class="accordion-inner">
+                      <p>An intermediate code allows the other party to generate an encrypted private key based on your passphrase without them actually knowing the passphrase.</p>
+                      <p>Typically the person receiving the coins is the person to generate the intermediate code.</p>
+                      <br />
                       <form class="form-horizontal">
                       <div class="control-group">
                         <label class="control-label" for="rec-genint-passphrase">Passphrase</label>
                         <div class="controls">
                           <input autocomplete="off" id="rec-genint-passphrase" placeholder=" Enter a passphrase" class="span8" />
                         </div>
-                    </div>
-                          <div class="form-actions">
-                            <button id="rec-genint-gen" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate Intermediate Code</a>
-                          </div>
+                      </div>
+                      <div class="form-actions">
+                        <button id="rec-genint-gen" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate Intermediate Code</a>
+                      </div>
                       <div class="control-group">
                         <label class="control-label" for="rec-genint-intermediate">Intermediate Code</label>
                         <div class="controls">
                           <input id="rec-genint-intermediate" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
+                      </div>
+                      <p class="muted">Provide the other party the intermediate code once it has been generated.</p>    
                     </div>
                   </form>
-                </div>
               </div>
             </div>
 
@@ -251,6 +254,8 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
                 </div>
                 <div id="collapseTwo" class="accordion-body collapse">
                     <div class="accordion-inner">
+                      <p>Generate the encrypted private key using the intermediate code that you were given by the other party.</p>
+                      <p>You will <strong>lose access to the coins</strong> unless the other party provides you with the passphrase to the encrypted private key.</p>
                       <form class="form-horizontal">
                       <div class="control-group">
                         <label class="control-label" for="send-gencon-intermediate">Intermediate Code</label>
@@ -279,6 +284,8 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
                           <input id="send-gencon-privatekey" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
                       </div>
+                      <p class="muted">Provide the address and confirmation code to the other party once they have been generated. Once the other party had verified the address using the confirmation code, you can send the coins to the address without fear of the other party getting access to the coins before the trade is complete.</p>
+                      <p class="muted"><strong>Do not</strong> give the other party the encypted key until you are ready to release the coins.</p>
                   </form>
                 </div>
               </div>
@@ -293,6 +300,8 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
                 </div>
                 <div id="collapseThree" class="accordion-body collapse">
                     <div class="accordion-inner">
+                      <p>Use your original passphrase and the confirmation code provided by the other party to verify that the address generated was based on your passphrase.</p>
+                      <p>Once verified, the other party can send coins to the address. You will not have access to the coins until the other party sends you the encrypted private key.</p>
                       <form class="form-horizontal">
                       <div class="control-group">
                         <label class="control-label" for="rec-vercon-passphrase">Passphrase</label>
@@ -323,6 +332,7 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
                 </div>
                 <div id="collapseFour" class="accordion-body collapse">
                     <div class="accordion-inner">
+                      <p>Decrypt an encrypted private key using a passphrase.</p>
                       <form class="form-horizontal">
                       <div class="control-group">
                         <label class="control-label" for="rec-decenc-passphrase">Passphrase</label>
@@ -358,6 +368,7 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
 
             <hr />
 
+            <h3>Encrypted Private Keys</h3>
             <div class="accordion-group">
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseFive">
