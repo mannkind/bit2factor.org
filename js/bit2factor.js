@@ -52,11 +52,11 @@ $(function() {
 			return;
 		}
 
-		Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(encryptedKey.val(), passphrase.val(), function(privateKeyByteArray) {
+		Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(encryptedKey.val(), passphrase.val(), function(privateKeyByteArray, isCompPoint) {
 			if (privateKeyByteArray != null && privateKeyByteArray.length > 0) {
 				var btc = new Bitcoin.ECKey(privateKeyByteArray);
-				$('#rec-decenc-wif').val(btc.getBitcoinWalletImportFormat());
-				$('#rec-decenc-address').val(btc.getBitcoinAddress());	
+				$('#rec-decenc-wif').val(isCompPoint ? btc.getBitcoinWalletImportFormatCompressed() : btc.getBitcoinWalletImportFormat());
+				$('#rec-decenc-address').val(isCompPoint ? btc.getBitcoinAddressCompressed() : btc.getBitcoinAddress());	
 			} else {
 				$('#rec-decenc-wif').val('Invalid encrypted key or passphrase');	
 				$('#rec-decenc-address').val('Invalid encrypted key or passphrase');	
@@ -236,12 +236,12 @@ $(function() {
 		];
 
 		var decryptTest = function(test, i, onComplete) {
-			Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(test[0], test[1], function(privBytes) {
+			Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(test[0], test[1], function(privBytes, isCompPoint) {
 				if (privBytes.constructor == Error) {
 					console.log('fail testBip38Decrypt #'+i+', error: '+privBytes.message);
 				} else {
 					var btcKey = new Bitcoin.ECKey(privBytes);
-					var wif = !test[2].substr(0,1).match(/[LK]/) ? btcKey.getBitcoinWalletImportFormat() : btcKey.getBitcoinWalletImportFormatCompressed();
+					var wif = !isCompPoint ? btcKey.getBitcoinWalletImportFormat() : btcKey.getBitcoinWalletImportFormatCompressed();
 					if (wif != test[2]) {
 						console.log("fail testBip38Decrypt #"+i);
 					} else {

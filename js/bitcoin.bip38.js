@@ -67,7 +67,7 @@ Bitcoin.BIP38 = {
 				return;
 			}
 
-			callback(tmpkey.getBitcoinPrivateKeyByteArray());
+			callback(tmpkey.getBitcoinPrivateKeyByteArray(), isCompPoint);
 		};
 
 		if (!isECMult) {
