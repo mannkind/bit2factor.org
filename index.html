@@ -74,6 +74,16 @@
     <div class="container">
       <div class="row">&nbsp;</div>
       <div class="row">
+        <div class="span12 alert alert-warning">
+          <p><strong>Please Note:</strong> There appears to be an issue encrypted/decrypting keys on some combinations of Mac OS X/Safari 6 (e.g. OS X 10.7/Safari 6.0.5 seems to have a problem, but OS X 10.8/Safari 6.1 seems to be fine) for all javascript-based BIP38 sites. Until the ultimate cause of the problem is discovered (Safari itself, Crypto_scrypt, BIP38, etc), one should probably avoid using Safari 6 w/any of the BIP38 websites.</p>
+          <p>If a version of Safari 6 that has the problem was used to encrypt your key, it appears that you can still decrypt your BIP38 key using that browser. However, other browsers and other BIP38 tools may not be able to decrypt your key.</p>
+          <p>For more information (probably too much information) please see:</p>
+          <ul>
+            <li><a href="https://github.com/cantonbecker/bitcoinpaperwallet/pull/6">https://github.com/cantonbecker/bitcoinpaperwallet/pull/6</a></li>
+            <li><a href="https://github.com/pointbiz/bitaddress.org/issues/56">https://github.com/pointbiz/bitaddress.org/issues/56</a></li>
+            <li><a href="https://github.com/mannkind/bit2factor.org/issues/2">https://github.com/mannkind/bit2factor.org/issues/2</a></li>
+          </ul>
+        </div>
         <div class="span12">
           <h2>Two-Factor Bitcoin</h2>
           <p>The <em>only</em> way to do a two-party transaction between untrusted peers (an implementation of <a href="https://en.bitcoin.it/wiki/BIP_0038">BIP38</a>)</p>
