@@ -96,6 +96,8 @@ Crypto.Scrypt = function(passwd, salt, N, r, p, dkLen, callback) {
 	function scryptCore() {
 		var XY = [], V = [];
 
+		salsa20_8(new Array(32));
+
 		if (typeof B === 'undefined') {
 			onmessage = function(event) {
 				var data = event.data;
