@@ -1,6 +1,5 @@
-
 /*!
-* Basic JavaScript BN library - subset useful for RSA encryption.
+* Basic JavaScript BN library - subset useful for RSA encryption. v1.3
 * 
 * Copyright (c) 2005  Tom Wu
 * All Rights Reserved.
@@ -151,7 +150,7 @@
 		this.t = 1;
 		this.s = (x < 0) ? -1 : 0;
 		if (x > 0) this[0] = x;
-		else if (x < -1) this[0] = x + DV;
+		else if (x < -1) this[0] = x + this.DV;
 		else this.t = 0;
 	};
 
@@ -459,7 +458,7 @@
 		if (r != 0) return r;
 		var i = this.t;
 		r = i - a.t;
-		if (r != 0) return r;
+		if (r != 0) return (this.s < 0) ? -r : r;
 		while (--i >= 0) if ((r = this[i] - a[i]) != 0) return r;
 		return 0;
 	}
@@ -1053,10 +1052,18 @@
 
 
 	// Copyright Stephan Thomas (start) --- //
+	// https://raw.github.com/bitcoinjs/bitcoinjs-lib/07f9d55ccb6abd962efb6befdd37671f85ea4ff9/src/util.js
 	// BigInteger monkey patching
 	BigInteger.valueOf = nbv;
+
+	/**
+	* Returns a byte array representation of the big integer.
+	*
+	* This returns the absolute of the contained value in big endian
+	* form. A value of zero results in an empty array.
+	*/
 	BigInteger.prototype.toByteArrayUnsigned = function () {
-		var ba = this.toByteArray();
+		var ba = this.abs().toByteArray();
 		if (ba.length) {
 			if (ba[0] == 0) {
 				ba = ba.slice(1);
@@ -1069,6 +1076,13 @@
 			return ba;
 		}
 	};
+
+	/**
+	* Turns a byte array into a big integer.
+	*
+	* This function will interpret a byte array as a big integer in big
+	* endian notation and ignore leading zeros.
+	*/
 	BigInteger.fromByteArrayUnsigned = function (ba) {
 		if (!ba.length) {
 			return ba.valueOf(0);
@@ -1080,6 +1094,66 @@
 			return new BigInteger(ba);
 		}
 	};
+
+	/**
+	* Converts big integer to signed byte representation.
+	*
+	* The format for this value uses a the most significant bit as a sign
+	* bit. If the most significant bit is already occupied by the
+	* absolute value, an extra byte is prepended and the sign bit is set
+	* there.
+	*
+	* Examples:
+	*
+	*      0 =>     0x00
+	*      1 =>     0x01
+	*     -1 =>     0x81
+	*    127 =>     0x7f
+	*   -127 =>     0xff
+	*    128 =>   0x0080
+	*   -128 =>   0x8080
+	*    255 =>   0x00ff
+	*   -255 =>   0x80ff
+	*  16300 =>   0x3fac
+	* -16300 =>   0xbfac
+	*  62300 => 0x00f35c
+	* -62300 => 0x80f35c
+	*/
+	BigInteger.prototype.toByteArraySigned = function () {
+		var val = this.abs().toByteArrayUnsigned();
+		var neg = this.compareTo(BigInteger.ZERO) < 0;
+
+		if (neg) {
+			if (val[0] & 0x80) {
+				val.unshift(0x80);
+			} else {
+				val[0] |= 0x80;
+			}
+		} else {
+			if (val[0] & 0x80) {
+				val.unshift(0x00);
+			}
+		}
+
+		return val;
+	};
+
+	/**
+	* Parse a signed big integer byte representation.
+	*
+	* For details on the format please see BigInteger.toByteArraySigned.
+	*/
+	BigInteger.fromByteArraySigned = function (ba) {
+		// Check for negative value
+		if (ba[0] & 0x80) {
+			// Remove sign bit
+			ba[0] &= 0x7f;
+
+			return BigInteger.fromByteArrayUnsigned(ba).negate();
+		} else {
+			return BigInteger.fromByteArrayUnsigned(ba);
+		}
+	};
 	// Copyright Stephan Thomas (end) --- //
 
 
@@ -1088,7 +1162,7 @@
 	// ****** REDUCTION ******* //
 
 	// Modular reduction using "classic" algorithm
-	function Classic(m) { this.m = m; }
+	var Classic = window.Classic = function Classic(m) { this.m = m; }
 	Classic.prototype.convert = function (x) {
 		if (x.s < 0 || x.compareTo(this.m) >= 0) return x.mod(this.m);
 		else return x;
@@ -1103,7 +1177,7 @@
 
 
 	// Montgomery reduction
-	function Montgomery(m) {
+	var Montgomery = window.Montgomery = function Montgomery(m) {
 		this.m = m;
 		this.mp = m.invDigit();
 		this.mpl = this.mp & 0x7fff;
@@ -1154,7 +1228,7 @@
 
 
 	// A "null" reducer
-	function NullExp() { }
+	var NullExp = window.NullExp = function NullExp() { }
 	NullExp.prototype.convert = function (x) { return x; };
 	NullExp.prototype.revert = function (x) { return x; };
 	NullExp.prototype.mulTo = function (x, y, r) { x.multiplyTo(y, r); };
@@ -1165,7 +1239,7 @@
 
 
 	// Barrett modular reduction
-	function Barrett(m) {
+	var Barrett = window.Barrett = function Barrett(m) {
 		// setup Barrett
 		this.r2 = nbi();
 		this.q3 = nbi();

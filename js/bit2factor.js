@@ -1,202 +1,221 @@
 $(function() {
-	$('body').click(SecureRandom.seedTime).keypress(SecureRandom.seedTime);
+  $('body').click(SecureRandom.seedTime).keypress(SecureRandom.seedTime);
   $('form').submit(function(e) { e.preventDefault(); });
 
-  if ($.ua.browser.name != 'Safari') { $('#compatibilityNotice').hide(); }
+  if ($.ua.browser.name!="Safari") { $("#compatibilityNotice").hide(); } 
 
-	var disableButtons = function(item) { item.parent().children('button').attr('disabled', 'disabled'); };
-	var enableButtons = function(item) { item.parent().children('button').attr('disabled', null); };
-	var enableSpinner = function(item) { item.button('loading'); };
-	var disableSpinner = function(item) { item.button('reset'); };
-	var startProcess = function($this, $target) { disableButtons($this); enableSpinner($target); };
-	var endProcess = function($this, $target) { enableButtons($this); disableSpinner($target); };
+  var disableButtons = function(item) { item.parent().children('button').attr('disabled', 'disabled'); };
+  var enableButtons = function(item) { item.parent().children('button').attr('disabled', null); };
+  var enableSpinner = function(item) { item.button('loading'); };
+  var disableSpinner = function(item) { item.button('reset'); };
+  var startProcess = function($this, $target) { disableButtons($this); enableSpinner($target); };
+  var endProcess = function($this, $target) { enableButtons($this); disableSpinner($target); };
 
-	$('#rec-genint-gen').click(function(e) {
-		e.preventDefault();
+  $('#rec-genint-gen').click(function(e) {
+    e.preventDefault();
 
-		$this = $(this);
-		$target = $(e.target);
-		startProcess($this, $target);
+    $this = $(this);
+    $target = $(e.target);
+    startProcess($this, $target);
 
-		var passphrase = $('#rec-genint-passphrase');
+    var passphrase = $('#rec-genint-passphrase');
 
-		if (passphrase.val().length <= 0) {
-			passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
-			endProcess($this, $target);
-			return;
-		}
-
-    jitBugWorkAround();
-
-		Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
-			$('#rec-genint-intermediate').val(intermediate);
-			endProcess($this, $target);
-		});
-	});
-
-	$('#rec-decenc-decrypt').click(function(e) {
-		e.preventDefault();
-
-		$this = $(this);
-		$target = $(e.target);
-		startProcess($this, $target);
-		
-		var encryptedKey = $('#rec-decenc-privatekey');
-		var passphrase = $('#rec-decenc-passphrase');
-
-		if (passphrase.val().length <= 0) {
-			passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
-			endProcess($this, $target);
-			return;
-		}
-
-		if (!Bitcoin.BIP38.isBIP38Format(encryptedKey.val())) {
-			encryptedKey.popover({ content: 'Invalid encrypted key' }).popover('show');
-			endProcess($this, $target);
-			return;
-		}
+    if (passphrase.val().length <= 0) {
+      passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
+      endProcess($this, $target);
+      return;
+    }
 
     jitBugWorkAround();
 
-		Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(encryptedKey.val(), passphrase.val(), function(privateKeyByteArray, isCompPoint) {
-			if (privateKeyByteArray != null && privateKeyByteArray.length > 0) {
-				var btc = new Bitcoin.ECKey(privateKeyByteArray);
-				$('#rec-decenc-wif').val(isCompPoint ? btc.getBitcoinWalletImportFormatCompressed() : btc.getBitcoinWalletImportFormat());
-				$('#rec-decenc-address').val(isCompPoint ? btc.getBitcoinAddressCompressed() : btc.getBitcoinAddress());	
-			} else {
-				$('#rec-decenc-wif').val('Invalid encrypted key or passphrase');	
-				$('#rec-decenc-address').val('Invalid encrypted key or passphrase');	
-			}
-			
-			endProcess($this, $target);
+    try {
+      Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
+        $('#rec-genint-intermediate').val(intermediate);
+        endProcess($this, $target);
+      });
+    } catch (e) {
+      $('#rec-genint-intermediate').val('There was a problem generating the intermediate code');
+      endProcess($this, $target);
+    }
+  });
+
+  $('#rec-decenc-decrypt').click(function(e) {
+    e.preventDefault();
+
+    $this = $(this);
+    $target = $(e.target);
+    startProcess($this, $target);
+
+    var encryptedKey = $('#rec-decenc-privatekey');
+    var passphrase = $('#rec-decenc-passphrase');
+
+    if (passphrase.val().length <= 0) {
+      passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
+      endProcess($this, $target);
+      return;
+    }
+
+    if (!Bitcoin.BIP38.isBIP38Format(encryptedKey.val())) {
+      encryptedKey.popover({ content: 'Invalid encrypted key' }).popover('show');
+      endProcess($this, $target);
+      return;
+    }
+
+    jitBugWorkAround();
+
+    try {
+      Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(encryptedKey.val(), passphrase.val(), function(privateKeyByteArray, isCompPoint) {
+        if (privateKeyByteArray != null && privateKeyByteArray.length > 0) {
+          var btc = new Bitcoin.ECKey(privateKeyByteArray);
+          btc.setCompressed(isCompPoint);
+
+          $('#rec-decenc-wif').val(btc.getBitcoinWalletImportFormat());
+          $('#rec-decenc-address').val(btc.getBitcoinAddress());	
+        } else {
+          $('#rec-decenc-wif').val('Invalid encrypted key or passphrase');	
+          $('#rec-decenc-address').val('Invalid encrypted key or passphrase');	
+        }
+
+        endProcess($this, $target);
+      });
+    } catch (e) {
+      $('#rec-decenc-wif').val('Invalid encrypted key or passphrase');  
+      $('#rec-decenc-address').val('Invalid encrypted key or passphrase');  
+      endProcess($this, $target);
+    }
+  });
+
+  $('#send-gencon-enc').click(function(e) {
+    e.preventDefault();
+
+    $this = $(this);
+    $target = $(e.target);
+    startProcess($this, $target);
+
+    var intermediate = $('#send-gencon-intermediate');
+
+    if (intermediate.val().length <= 0 || intermediate.val().substr(0, 10) != 'passphrase') { 
+      intermediate.popover({ content: 'Invalid intermediate code' }).popover('show');
+      endProcess($this, $target);
+      return;
+    }
+
+    jitBugWorkAround();
+
+    try {
+      Bitcoin.BIP38.GenerateECAddressAsync(intermediate.val(), false, function(confirmationCode, generatedAddress, encryptedKey) {
+        $('#send-gencon-address').val(generatedAddress);
+        $('#send-gencon-privatekey').val(encryptedKey);
+        $('#send-gencon-confirmation').val(confirmationCode);
+        endProcess($this, $target);
+      });
+    } catch (e) {
+      $('#send-gencon-address').val('Invalid intermediate code');
+      $('#send-gencon-privatekey').val('Invalid intermediate code');
+      $('#send-gencon-confirmation').val('Invalid intermediate code');
+      endProcess($this, $target);
+    }
+  });
+
+  $('#rec-vercon-verify').click(function(e) {
+    e.preventDefault();
+
+    $this = $(this);
+    $target = $(e.target);
+    startProcess($this, $target);
+
+    var modal = $('#rec-vercon-modal');
+    var verification = $('#rec-vercon-verification');
+    var confirmation = $('#rec-vercon-confirmation');
+    var passphrase = $('#rec-vercon-passphrase');
+
+    if (passphrase.val().length <= 0) {
+      passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
+      endProcess($this, $target);
+      return;
+    }
+
+    if (confirmation.val().length <= 0 || confirmation.val().substr(0, 6) != 'cfrm38') {
+      confirmation.popover({ content: 'The confirmation code is invalid' }).popover('show');
+      endProcess($this, $target);
+      return;
+    } 
+
+    jitBugWorkAround();
+
+    try {
+      Bitcoin.BIP38.ValidateConfirmationAsync(confirmation.val(), passphrase.val(), function(isValid, generatedAddress) {
+        if (!isValid) {
+          verification.text('The passphrase or confirmation code is invalid');
+        } else {
+          verification.text('The address ' + generatedAddress + ' is associated with your passphrase');
+        }
+        modal.modal('show');
+        endProcess($this, $target);
+      });
+    } catch (e) {
+      verification.text('The passphrase or confirmation code is invalid');
+      modal.modal('show');
+      endProcess($this, $target);
+    }
+  });
+
+  $('#encgen-encrypt').click(function(e) {
+    e.preventDefault();
+
+    $this = $(this);
+    $target = $(e.target);
+    startProcess($this, $target);
+
+    var passphrase = $('#encgen-passphrase');
+    var privatekey = $('#encgen-uprivkey');
+
+    if (passphrase.val().length <= 0) {
+      passphrase.popover({ content: 'Invalid passphrase' }).popover('show');
+      endProcess($this, $target);
+      return;
+    }
+
+    if (privatekey.val().length != 0 && 
+       (!/^5[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{50}$/.test(privatekey.val()) &&
+        !/^[LK][123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{51}$/.test(privatekey.val()))) {
+
+      privatekey.popover({ content: 'Invalid private key' }).popover('show');
+      endProcess($this, $target);
+      return;
+    }
+
+    jitBugWorkAround();
+
+    try {
+      if (privatekey.val().length != 0) {
+        var compressed = /^[LK]/.test(privatekey.val());
+        Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(privatekey.val(), passphrase.val(), compressed, function(encryptedKey, generatedAddress) {
+          $('#encgen-address').val(generatedAddress);
+          $('#encgen-privkey').val(encryptedKey);
+          endProcess($this, $target);
         });
-	});
+      } else {
+        Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
+          Bitcoin.BIP38.GenerateECAddressAsync(intermediate, false, function(confirmationCode, generatedAddress, encryptedKey) {
+            $('#encgen-address').val(generatedAddress);
+            $('#encgen-privkey').val(encryptedKey);
+            endProcess($this, $target);
+          });
+        });
+      }
+    } catch (e) {
+      $('#encgen-address').val('There was a problem encrypting the key');
+      $('#encgen-privkey').val('There was a problem encrypting the key');
+      endProcess($this, $target);
+    }
+  });
 
-	$('#send-gencon-enc').click(function(e) {
-		e.preventDefault();
+  $('#run-tests').click(function(e) {
+    e.preventDefault();
 
-		$this = $(this);
-		$target = $(e.target);
-		startProcess($this, $target);
-
-		var intermediate = $('#send-gencon-intermediate');
-
-		if (intermediate.val().length <= 0 || intermediate.val().substr(0, 10) != 'passphrase') { 
-			intermediate.popover({ content: 'Invalid intermediate code' }).popover('show');
-			endProcess($this, $target);
-			return;
-		}
-
-    jitBugWorkAround();
-
-		try {
-			Bitcoin.BIP38.GenerateECAddressAsync(intermediate.val(), false, function(confirmationCode, generatedAddress, encryptedKey) {
-				$('#send-gencon-address').val(generatedAddress);
-				$('#send-gencon-privatekey').val(encryptedKey);
-				$('#send-gencon-confirmation').val(confirmationCode);
-				endProcess($this, $target);
-			});
-		} catch (e) {
-			$('#send-gencon-address').val('Invalid intermediate code');
-			$('#send-gencon-privatekey').val('Invalid intermediate code');
-			$('#send-gencon-confirmation').val('Invalid intermediate code');
-			endProcess($this, $target);
-		}
-	});
-
-	$('#rec-vercon-verify').click(function(e) {
-		e.preventDefault();
-
-		$this = $(this);
-		$target = $(e.target);
-		startProcess($this, $target);
-
-		var modal = $('#rec-vercon-modal');
-		var verification = $('#rec-vercon-verification');
-		var confirmation = $('#rec-vercon-confirmation');
-		var passphrase = $('#rec-vercon-passphrase');
-
-		if (passphrase.val().length <= 0) {
-			passphrase.popover({ content: 'The passphrase is invalid' }).popover('show');
-			endProcess($this, $target);
-			return;
-		}
-
-		if (confirmation.val().length <= 0 || confirmation.val().substr(0, 6) != 'cfrm38') {
-			confirmation.popover({ content: 'The confirmation code is invalid' }).popover('show');
-			endProcess($this, $target);
-			return;
-		} 
-
-    jitBugWorkAround();
-
-		try {
-	        Bitcoin.BIP38.ValidateConfirmationAsync(confirmation.val(), passphrase.val(), function(isValid, generatedAddress) {
-	            if (!isValid) {
-		            verification.text('The passphrase or confirmation code is invalid');
-	            } else {
-					verification.text('The address ' + generatedAddress + ' is associated with your passphrase');
-	        	}
-	        	modal.modal('show');
-				endProcess($this, $target);
-	        });
-    	} catch (e) {
-    		verification.text('The passphrase or confirmation code is invalid');
-    		modal.modal('show');
-    		endProcess($this, $target);
-    	}
-	});
-
-	$('#encgen-encrypt').click(function(e) {
-		e.preventDefault();
-
-		$this = $(this);
-		$target = $(e.target);
-		startProcess($this, $target);
-
-		var passphrase = $('#encgen-passphrase');
-		var privatekey = $('#encgen-uprivkey');
-		
-		if (passphrase.val().length <= 0) {
-			passphrase.popover({ content: 'Invalid passphrase' }).popover('show');
-			endProcess($this, $target);
-			return;
-		}
-
-		if (privatekey.val().length != 0 && 
-			(!/^5[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{50}$/.test(privatekey.val()) &&
-			 !/^[LK][123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{51}$/.test(privatekey.val()))) {
-
-			privatekey.popover({ content: 'Invalid private key' }).popover('show');
-			endProcess($this, $target);
-			return;
-		}
-
-    jitBugWorkAround();
-
-		if (privatekey.val().length != 0) {
-			var compressed = /^[LK]/.test(privatekey.val());
-			Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(privatekey.val(), passphrase.val(), compressed, function(encryptedKey, generatedAddress) {
-					$('#encgen-address').val(generatedAddress);
-					$('#encgen-privkey').val(encryptedKey);
-					endProcess($this, $target);
-			});
-		} else {
-			Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
-				Bitcoin.BIP38.GenerateECAddressAsync(intermediate, false, function(confirmationCode, generatedAddress, encryptedKey) {
-					$('#encgen-address').val(generatedAddress);
-					$('#encgen-privkey').val(encryptedKey);
-					endProcess($this, $target);
-				});
-			});
-		}
-	});
-
-	$('#run-tests').click(function(e) {
-		e.preventDefault();
-
-		$this = $(this);
-		$target = $(e.target);
+    $this = $(this);
+    $target = $(e.target);
     startProcess($this, $target);
 
     $('#run-tests-modal').modal({
@@ -223,7 +242,6 @@ $(function() {
 
       $('#run-tests-modal p').text(content);
     });
-
   });
 
   // Hacky work-around
@@ -238,14 +256,14 @@ $(function() {
       onComplete();
     });
   }
-  
+
   /**
    * Testing Code
    */
   var runTests = function(testCallback, progressCallback) {
     var failedTestsCount = 0;
     testCallback = testCallback || function() { console.log('... done running tests'); };
-		progressCallback = progressCallback || function() {};
+    progressCallback = progressCallback || function() {};
     console.log('Running tests...');
     function runSerialized(functions, onComplete) {
       onComplete = onComplete || function() {};
@@ -299,7 +317,9 @@ $(function() {
           console.log('fail testBip38Decrypt #'+i+', error: '+privBytes.message);
         } else {
           var btcKey = new Bitcoin.ECKey(privBytes);
-          var wif = !isCompPoint ? btcKey.getBitcoinWalletImportFormat() : btcKey.getBitcoinWalletImportFormatCompressed();
+          btcKey.setCompressed(isCompPoint);
+
+          var wif = btcKey.getBitcoinWalletImportFormat();
           if (wif != test[2]) {
             failedTestsCount++;
             console.log("fail testBip38Decrypt #"+i);
@@ -342,7 +362,7 @@ $(function() {
             failedTestsCount++;
             console.log('fail cycleBip38 test: ' + privKey);
             console.log('cycleBip38 fail: private key: %s\nencrypted key: %s\ndecrypted key: %s',
-                  privKey, encryptedKey, decryptedKey);
+              privKey, encryptedKey, decryptedKey);
           }
           onComplete();
         });
@@ -390,6 +410,7 @@ $(function() {
         onComplete();
       }
     }
+    
     // running each test uses a lot of memory, which isn't freed
     // immediately, so give the VM a little time to reclaim memory
     var totalTestsCount = 4 + 2 + tests.length + 2 + 5;
@@ -437,8 +458,7 @@ $(function() {
 
   };
 
-	var hash;hash={};window.location.hash.replace(/[?&]+([^=&]+)=([^&]*)/g,function(g,h,i){return hash[h]=i});
-	console.log(hash['jitwarmup'] );
+  var hash;hash={};window.location.hash.replace(/[?&]+([^=&]+)=([^&]*)/g,function(g,h,i){return hash[h]=i});
   if (hash['runtests'] == 'true') {
     runTests();
   }

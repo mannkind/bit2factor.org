@@ -1,4 +1,4 @@
-
+//https://raw.github.com/bitcoinjs/bitcoinjs-lib/faa10f0f6a1fff0b9a99fffb9bc30cee33b17212/src/ecdsa.js
 /*!
 * Basic Javascript Elliptic Curve implementation
 * Ported loosely from BouncyCastle's Java EC code
@@ -15,11 +15,13 @@
 
 	// ----------------
 	// ECFieldElementFp constructor
+	// q instanceof BigInteger
+	// x instanceof BigInteger
 	ec.FieldElementFp = function (q, x) {
 		this.x = x;
 		// TODO if(x.compareTo(q) >= 0) error
 		this.q = q;
-	}
+	};
 
 	ec.FieldElementFp.prototype.equals = function (other) {
 		if (other == this) return true;
@@ -58,9 +60,109 @@
 		return Math.floor((this.toBigInteger().bitLength() + 7) / 8);
 	};
 
+	// D.1.4 91
+	/**
+	* return a sqrt root - the routine verifies that the calculation
+	* returns the right value - if none exists it returns null.
+	* 
+	* Copyright (c) 2000 - 2011 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)
+	* Ported to JavaScript by bitaddress.org
+	*/
+	ec.FieldElementFp.prototype.sqrt = function () {
+		if (!this.q.testBit(0)) throw new Error("even value of q");
+
+		// p mod 4 == 3
+		if (this.q.testBit(1)) {
+			// z = g^(u+1) + p, p = 4u + 3
+			var z = new ec.FieldElementFp(this.q, this.x.modPow(this.q.shiftRight(2).add(BigInteger.ONE), this.q));
+			return z.square().equals(this) ? z : null;
+		}
+
+		// p mod 4 == 1
+		var qMinusOne = this.q.subtract(BigInteger.ONE);
+		var legendreExponent = qMinusOne.shiftRight(1);
+		if (!(this.x.modPow(legendreExponent, this.q).equals(BigInteger.ONE))) return null;
+		var u = qMinusOne.shiftRight(2);
+		var k = u.shiftLeft(1).add(BigInteger.ONE);
+		var Q = this.x;
+		var fourQ = Q.shiftLeft(2).mod(this.q);
+		var U, V;
+
+		do {
+			var rand = new SecureRandom();
+			var P;
+			do {
+				P = new BigInteger(this.q.bitLength(), rand);
+			}
+			while (P.compareTo(this.q) >= 0 || !(P.multiply(P).subtract(fourQ).modPow(legendreExponent, this.q).equals(qMinusOne)));
+
+			var result = ec.FieldElementFp.fastLucasSequence(this.q, P, Q, k);
+
+			U = result[0];
+			V = result[1];
+			if (V.multiply(V).mod(this.q).equals(fourQ)) {
+				// Integer division by 2, mod q
+				if (V.testBit(0)) {
+					V = V.add(this.q);
+				}
+				V = V.shiftRight(1);
+				return new ec.FieldElementFp(this.q, V);
+			}
+		}
+		while (U.equals(BigInteger.ONE) || U.equals(qMinusOne));
+
+		return null;
+	};
+
+	/*
+	* Copyright (c) 2000 - 2011 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)
+	* Ported to JavaScript by bitaddress.org
+	*/
+	ec.FieldElementFp.fastLucasSequence = function (p, P, Q, k) {
+		// TODO Research and apply "common-multiplicand multiplication here"
+
+		var n = k.bitLength();
+		var s = k.getLowestSetBit();
+		var Uh = BigInteger.ONE;
+		var Vl = BigInteger.TWO;
+		var Vh = P;
+		var Ql = BigInteger.ONE;
+		var Qh = BigInteger.ONE;
+
+		for (var j = n - 1; j >= s + 1; --j) {
+			Ql = Ql.multiply(Qh).mod(p);
+			if (k.testBit(j)) {
+				Qh = Ql.multiply(Q).mod(p);
+				Uh = Uh.multiply(Vh).mod(p);
+				Vl = Vh.multiply(Vl).subtract(P.multiply(Ql)).mod(p);
+				Vh = Vh.multiply(Vh).subtract(Qh.shiftLeft(1)).mod(p);
+			}
+			else {
+				Qh = Ql;
+				Uh = Uh.multiply(Vl).subtract(Ql).mod(p);
+				Vh = Vh.multiply(Vl).subtract(P.multiply(Ql)).mod(p);
+				Vl = Vl.multiply(Vl).subtract(Ql.shiftLeft(1)).mod(p);
+			}
+		}
+
+		Ql = Ql.multiply(Qh).mod(p);
+		Qh = Ql.multiply(Q).mod(p);
+		Uh = Uh.multiply(Vl).subtract(Ql).mod(p);
+		Vl = Vh.multiply(Vl).subtract(P.multiply(Ql)).mod(p);
+		Ql = Ql.multiply(Qh).mod(p);
+
+		for (var j = 1; j <= s; ++j) {
+			Uh = Uh.multiply(Vl).mod(p);
+			Vl = Vl.multiply(Vl).subtract(Ql.shiftLeft(1)).mod(p);
+			Ql = Ql.multiply(Ql).mod(p);
+		}
+
+		return [Uh, Vl];
+	};
+
 	// ----------------
 	// ECPointFp constructor
-	ec.PointFp = function (curve, x, y, z) {
+	ec.PointFp = function (curve, x, y, z, compressed) {
 		this.curve = curve;
 		this.x = x;
 		this.y = y;
@@ -73,21 +175,26 @@
 			this.z = z;
 		}
 		this.zinv = null;
-		//TODO: compression flag
+		// compression flag
+		this.compressed = !!compressed;
 	};
 
 	ec.PointFp.prototype.getX = function () {
 		if (this.zinv == null) {
 			this.zinv = this.z.modInverse(this.curve.q);
 		}
-		return this.curve.fromBigInteger(this.x.toBigInteger().multiply(this.zinv).mod(this.curve.q));
+		var r = this.x.toBigInteger().multiply(this.zinv);
+		this.curve.reduce(r);
+		return this.curve.fromBigInteger(r);
 	};
 
 	ec.PointFp.prototype.getY = function () {
 		if (this.zinv == null) {
 			this.zinv = this.z.modInverse(this.curve.q);
 		}
-		return this.curve.fromBigInteger(this.y.toBigInteger().multiply(this.zinv).mod(this.curve.q));
+		var r = this.y.toBigInteger().multiply(this.zinv);
+		this.curve.reduce(r);
+		return this.curve.fromBigInteger(r);
 	};
 
 	ec.PointFp.prototype.equals = function (other) {
@@ -169,6 +276,7 @@
 			w = w.add(this.z.square().multiply(a));
 		}
 		w = w.mod(this.curve.q);
+		//this.curve.reduce(w);
 		// x3 = 2 * y1 * z1 * (w^2 - 8 * x1 * y1^2 * z1)
 		var x3 = w.square().subtract(x1.shiftLeft(3).multiply(y1sqz1)).shiftLeft(1).multiply(y1z1).mod(this.curve.q);
 		// y3 = 4 * y1^2 * z1 * (3 * w * x1 - 2 * y1^2 * z1) - w^3
@@ -253,7 +361,7 @@
 			else {
 				enc.unshift(0x03);
 			}
-		} 
+		}
 		else {
 			enc.unshift(0x04);
 			enc = enc.concat(ec.integerToBytes(y, len)); // uncompressed public key appends the bytes of the y point
@@ -358,6 +466,15 @@
 		return lhs.equals(rhs);
 	};
 
+	ec.PointFp.prototype.toString = function () {
+		return '(' + this.getX().toBigInteger().toString() + ',' + this.getY().toBigInteger().toString() + ')';
+	};
+
+	/**
+	* Validate an elliptic curve point.
+	*
+	* See SEC 1, section 3.2.2.1: Elliptic Curve Public Key Validation Primitive
+	*/
 	ec.PointFp.prototype.validate = function () {
 		var n = this.curve.getQ();
 
@@ -400,6 +517,7 @@
 		this.a = this.fromBigInteger(a);
 		this.b = this.fromBigInteger(b);
 		this.infinity = new ec.PointFp(this, null, null);
+		this.reducer = new Barrett(this.q);
 	}
 
 	ec.CurveFp.prototype.getQ = function () {
@@ -427,49 +545,74 @@
 		return new ec.FieldElementFp(this.q, x);
 	};
 
-	ec.CurveFp.prototype.decompressPoint = function(yOdd, X) {
-		if(this.q.mod(BigInteger.valueOf(4)).equals(BigInteger.valueOf(3))) {
-			// y^2 = x^3 + ax^2 + b, so we need to perform sqrt to recover y
-			var ySquared = X.multiply(X.square().add(this.a)).add(this.b);
-
-			// sqrt(a) = a^((q-1)/4) if q = 3 mod 4
-			var Y = ySquared.x.modPow(this.q.add(BigInteger.ONE).divide(BigInteger.valueOf(4)), this.q);
-
-			if(Y.testBit(0) !== yOdd) {
-				Y = this.q.subtract(Y);
-			}
-
-			return new ec.PointFp(this, X, this.fromBigInteger(Y));
-		}
-		else {
-			// only implement sqrt for q = 3 mod 4
-			return null;
-		}
+	ec.CurveFp.prototype.reduce = function (x) {
+		this.reducer.reduce(x);
 	};
 
 	// for now, work with hex strings because they're easier in JS
+	// compressed support added by bitaddress.org
 	ec.CurveFp.prototype.decodePointHex = function (s) {
-		switch (parseInt(s.substr(0, 2), 16)) { // first byte
+		var firstByte = parseInt(s.substr(0, 2), 16);
+		switch (firstByte) { // first byte
 			case 0:
 				return this.infinity;
-			case 2:
-				return this.decompressPoint(false, this.fromBigInteger(new BigInteger(s.substr(2), 16)));
-			case 3:
-				return this.decompressPoint(true, this.fromBigInteger(new BigInteger(s.substr(2), 16)));
-			case 4:
-			case 6:
-			case 7:
+			case 2: // compressed
+			case 3: // compressed
+				var yTilde = firstByte & 1;
+				var xHex = s.substr(2, s.length - 2);
+				var X1 = new BigInteger(xHex, 16);
+				return this.decompressPoint(yTilde, X1);
+			case 4: // uncompressed
+			case 6: // hybrid
+			case 7: // hybrid
 				var len = (s.length - 2) / 2;
 				var xHex = s.substr(2, len);
 				var yHex = s.substr(len + 2, len);
 
 				return new ec.PointFp(this,
-				this.fromBigInteger(new BigInteger(xHex, 16)),
-				this.fromBigInteger(new BigInteger(yHex, 16)));
+					this.fromBigInteger(new BigInteger(xHex, 16)),
+					this.fromBigInteger(new BigInteger(yHex, 16)));
 
 			default: // unsupported
 				return null;
 		}
+	};
+
+	ec.CurveFp.prototype.encodePointHex = function (p) {
+		if (p.isInfinity()) return "00";
+		var xHex = p.getX().toBigInteger().toString(16);
+		var yHex = p.getY().toBigInteger().toString(16);
+		var oLen = this.getQ().toString(16).length;
+		if ((oLen % 2) != 0) oLen++;
+		while (xHex.length < oLen) {
+			xHex = "0" + xHex;
+		}
+		while (yHex.length < oLen) {
+			yHex = "0" + yHex;
+		}
+		return "04" + xHex + yHex;
+	};
+
+	/*
+	* Copyright (c) 2000 - 2011 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)
+	* Ported to JavaScript by bitaddress.org
+	*
+	* Number yTilde
+	* BigInteger X1
+	*/
+	ec.CurveFp.prototype.decompressPoint = function (yTilde, X1) {
+		var x = this.fromBigInteger(X1);
+		var alpha = x.multiply(x.square().add(this.getA())).add(this.getB());
+		var beta = alpha.sqrt();
+		// if we can't find a sqrt we haven't got a point on the curve - run!
+		if (beta == null) throw new Error("Invalid point compression");
+		var betaValue = beta.toBigInteger();
+		var bit0 = betaValue.testBit(0) ? 1 : 0;
+		if (bit0 != yTilde) {
+			// Use the other root
+			beta = this.fromBigInteger(this.getQ().subtract(betaValue));
+		}
+		return new ec.PointFp(this, x, beta, null, true);
 	};
 
 
@@ -512,8 +655,8 @@
 			var h = BigInteger.ONE;
 			var curve = new ec.CurveFp(p, a, b);
 			var G = curve.decodePointHex("04"
-				+ "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
-				+ "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8");
+					+ "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
+					+ "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8");
 			return new ec.X9Parameters(curve, G, n, h);
 		}
 	};

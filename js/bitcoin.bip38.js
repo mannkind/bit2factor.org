@@ -59,7 +59,9 @@ Bitcoin.BIP38 = {
 
 		var verifyHashAndReturn = function() {
 			var tmpkey = new Bitcoin.ECKey(decrypted);
-			var base58AddrText = isCompPoint ? tmpkey.getBitcoinAddressCompressed() : tmpkey.getBitcoinAddress();
+			tmpkey.setCompressed(isCompPoint);
+
+			var base58AddrText = tmpkey.getBitcoinAddress();
 			checksum = Bitcoin.Util.dsha256(base58AddrText);
 
 			if (checksum[0] != hex[3] || checksum[1] != hex[4] || checksum[2] != hex[5] || checksum[3] != hex[6]) {
@@ -72,7 +74,7 @@ Bitcoin.BIP38 = {
 
 		if (!isECMult) {
 			var addresshash = hex.slice(3, 7);
-			Crypto.Scrypt(passphrase, addresshash, 16384, 8, 8, 64, function(derivedBytes) {
+			window.Crypto_scrypt(passphrase, addresshash, 16384, 8, 8, 64, function(derivedBytes) {
 				var k = derivedBytes.slice(32, 32+32);
 				decrypted = Crypto.AES.decrypt(hex.slice(7, 7+32), k, AES_opts);
 				for (var x = 0; x < 32; x++) decrypted[x] ^= derivedBytes[x];
@@ -81,7 +83,7 @@ Bitcoin.BIP38 = {
 		} else {
 			var ownerentropy = hex.slice(7, 7+8);
 			var ownersalt = !hasLotSeq ? ownerentropy : ownerentropy.slice(0, 4);
-			Crypto.Scrypt(passphrase, ownersalt, 16384, 8, 8, 32, function(prefactorA) {
+			window.Crypto_scrypt(passphrase, ownersalt, 16384, 8, 8, 32, function(prefactorA) {
 				var passfactor;
 				if (!hasLotSeq) {
 					passfactor = prefactorA;
@@ -90,12 +92,14 @@ Bitcoin.BIP38 = {
 					passfactor = Bitcoin.Util.dsha256(prefactorB);
 				}
 				var kp = new Bitcoin.ECKey(passfactor);
-				var passpoint = kp.getPubCompressed();
+				kp.setCompressed(true);
+
+				var passpoint = kp.getPub();
 
 				var encryptedpart2 = hex.slice(23, 23+16);
 
 				var addresshashplusownerentropy = hex.slice(3, 3+12);
-				Crypto.Scrypt(passpoint, addresshashplusownerentropy, 1024, 1, 1, 64, function(derived) {
+				window.Crypto_scrypt(passpoint, addresshashplusownerentropy, 1024, 1, 1, 64, function(derived) {
 					var k = derived.slice(32);
 
 					var unencryptedpart2 = Crypto.AES.decrypt(encryptedpart2, k, AES_opts);
@@ -144,7 +148,7 @@ Bitcoin.BIP38 = {
 		}
 
 		// 4) Derive a key from the passphrase using scrypt
-		Crypto.Scrypt(passphrase, ownerSalt, 16384, 8, 8, 32, function(prefactor) {
+		window.Crypto_scrypt(passphrase, ownerSalt, 16384, 8, 8, 32, function(prefactor) {
 			// Take SHA256(SHA256(prefactor + ownerentropy)) and call this passfactor
 			var passfactorBytes = noNumbers? prefactor : Bitcoin.Util.dsha256(prefactor.concat(ownerEntropy));
 			var passfactor = BigInteger.fromByteArrayUnsigned(passfactorBytes);
@@ -180,7 +184,9 @@ Bitcoin.BIP38 = {
 	    }
 
 		var privKey = new Bitcoin.ECKey(privKeyBytes);
-		var address = compressed? privKey.getBitcoinAddressCompressed() : privKey.getBitcoinAddress();
+		privKey.setCompressed(compressed);
+
+		var address = privKey.getBitcoinAddress();
 
 		// compute sha256(sha256(privKey)) and take first 4 bytes
 		var salt = Bitcoin.Util.dsha256(address).slice(0, 4);
@@ -188,7 +194,7 @@ Bitcoin.BIP38 = {
 		// derive key using scrypt
 		var AES_opts = {mode: new Crypto.mode.ECB(Crypto.pad.NoPadding), asBytes: true};
 
-		Crypto.Scrypt(passphrase, salt, 16384, 8, 8, 64, function(derivedBytes) {
+		window.Crypto_scrypt(passphrase, salt, 16384, 8, 8, 64, function(derivedBytes) {
 			for(var i = 0; i < 32; ++i) {
 				privKeyBytes[i] ^= derivedBytes[i];
 			}
@@ -238,7 +244,7 @@ Bitcoin.BIP38 = {
 		var addressHash = Bitcoin.Util.dsha256(generatedAddress).slice(0,4);
 
 		// 5) Now we will encrypt seedb. Derive a second key from passpoint using scrypt
-		Crypto.Scrypt(passpoint, addressHash.concat(ownerEntropy), 1024, 1, 1, 64, function(derivedBytes) {
+		window.Crypto_scrypt(passpoint, addressHash.concat(ownerEntropy), 1024, 1, 1, 64, function(derivedBytes) {
 			
 			// 6) Do AES256Encrypt(seedb[0...15]] xor derivedhalf1[0...15], derivedhalf2), call the 16-byte result encryptedpart1
 			for(var i = 0; i < 16; ++i) {
@@ -309,7 +315,7 @@ Bitcoin.BIP38 = {
 		var lotSequencePresent = (flagByte & 0x04) == 0x04;
 		var ownerSalt = ownerEntropy.slice(0, lotSequencePresent ? 4 : 8)
 
-		Crypto.Scrypt(passphrase, ownerSalt, 16384, 8, 8, 32, function(prefactor) {
+		window.Crypto_scrypt(passphrase, ownerSalt, 16384, 8, 8, 32, function(prefactor) {
 			// Take SHA256(SHA256(prefactor + ownerentropy)) and call this passfactor
 			var passfactorBytes = !lotSequencePresent? prefactor : Bitcoin.Util.dsha256(prefactor.concat(ownerEntropy));
 			var passfactor = BigInteger.fromByteArrayUnsigned(passfactorBytes);
@@ -320,7 +326,7 @@ Bitcoin.BIP38 = {
 
 			var addresshashplusownerentropy = addressHash.concat(ownerEntropy);
 
-			Crypto.Scrypt(passpoint, addresshashplusownerentropy, 1024, 1, 1, 64, function(derivedBytes) 
+			window.Crypto_scrypt(passpoint, addresshashplusownerentropy, 1024, 1, 1, 64, function(derivedBytes) 
 			{
 				var AES_opts = {mode: new Crypto.mode.ECB(Crypto.pad.NoPadding), asBytes: true};
 				var unencryptedpubkey = [];
