@@ -23,6 +23,7 @@
     window.BigInteger     BSD License
     window.Bitcoin        MIT License
     window.Bitcoin.BIP38  MIT License
+    window.UAParser       MIT License
 
     Framework             License
     *******************   **************
@@ -68,6 +69,7 @@
     <script src="js/crypto.scrypt.js" type="text/javascript"></script>
     <script src="js/jquery.min.js" type="text/javascript"></script> 
     <script src="js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="js/uaparser.js" type="text/javascript"></script>
     <script src="js/bit2factor.js" type="text/javascript"></script>
   </head>
   <body>
@@ -78,24 +80,22 @@
           <h2>Two-Factor Bitcoin</h2>
           <p>The <em>only</em> way to do a two-party transaction between untrusted peers (an implementation of <a href="https://en.bitcoin.it/wiki/BIP_0038">BIP38</a>)</p>
           <p>If you're looking for to do Bitcoin Escrow, checkout <a href="http://www.bitescrow.org">bitescrow.org</a></p>
-          <div class="accordion" id="accordion1">
+          <div class="accordion" id="compatibilityNotice">
             <div class="accordion-group">
                 <div class="accordion-heading">
-                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapseAlert">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#compatibilityNotice" href="#collapseAlert">
                       Compatibility Notice &mdash; Please Read
                     </a>
                 </div>
                 <div id="collapseAlert" class="accordion-body collapse">
                     <div class="accordion-inner">
-                        <p>If you encrypted your private key with Safari 6.0.x, due to a bug in the <a href="https://stackoverflow.com/questions/13147026/disabling-jit-in-safari-6-to-workaround-severe-javascript-jit-bugs">Safari 6.0.x JIT engine</a> that affected all javascript-based BIP38 sites (since we're all using the same Crypto_scrpyt library), you may need to access the <a href="git-commit-1825396c333f95422c16a60ce560022ac111449f.html">older version of bit2factor.org</a> in order to properly decrypt your key.</p>
+                        <p>If you encrypted your private key with Safari 6.0.x, due to a bug in the <a href="https://stackoverflow.com/questions/13147026/disabling-jit-in-safari-6-to-workaround-severe-javascript-jit-bugs">Safari 6.0.x JIT engine</a> you may need to access the <a href="git-commit-1825396c333f95422c16a60ce560022ac111449f.html">older version of bit2factor.org</a> in order to properly decrypt your key.</p>
                         <p>It is recommended that you ... </p>
                         <ul>
                           <li><strong>Do not</strong> use Safari 6.0.x</li>
                           <li><strong>Do</strong> run the BIP38 test suite</li>
                           <li><strong>Test</strong> the decryption with different browsers before sending coins to an address.</li>
                         </ul>
-                        <p><button id="run-tests" class="btn btn-primary btn-small" data-loading-text=" ... Running Tests ... ">Run Tests</button></p>
-                        <p class="muted">The test suite does take some time to complete so please be patient.</p>
                     </div>
                 </div>
             </div>
@@ -300,6 +300,14 @@
                 </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <hr />
+          <p><button id="run-tests" class="btn btn-primary btn-small" data-loading-text=" ... Running Tests ... ">Run BIP38 Test Suite</button></p>
+          <p class="muted">The test suite does take some time to complete so please be patient.</p>
         </div>
       </div>
 

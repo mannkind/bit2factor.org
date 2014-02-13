@@ -2,6 +2,8 @@ $(function() {
 	$('body').click(SecureRandom.seedTime).keypress(SecureRandom.seedTime);
   $('form').submit(function(e) { e.preventDefault(); });
 
+  if ($.ua.browser.name != 'Safari') { $('#compatibilityNotice').hide(); }
+
 	var disableButtons = function(item) { item.parent().children('button').attr('disabled', 'disabled'); };
 	var enableButtons = function(item) { item.parent().children('button').attr('disabled', null); };
 	var enableSpinner = function(item) { item.button('loading'); };
@@ -23,6 +25,8 @@ $(function() {
 			endProcess($this, $target);
 			return;
 		}
+
+    jitBugWorkAround();
 
 		Bitcoin.BIP38.GenerateIntermediatePointAsync(passphrase.val(), null, null, function(intermediate) {
 			$('#rec-genint-intermediate').val(intermediate);
@@ -52,6 +56,8 @@ $(function() {
 			return;
 		}
 
+    jitBugWorkAround();
+
 		Bitcoin.BIP38.EncryptedKeyToByteArrayAsync(encryptedKey.val(), passphrase.val(), function(privateKeyByteArray, isCompPoint) {
 			if (privateKeyByteArray != null && privateKeyByteArray.length > 0) {
 				var btc = new Bitcoin.ECKey(privateKeyByteArray);
@@ -80,6 +86,8 @@ $(function() {
 			endProcess($this, $target);
 			return;
 		}
+
+    jitBugWorkAround();
 
 		try {
 			Bitcoin.BIP38.GenerateECAddressAsync(intermediate.val(), false, function(confirmationCode, generatedAddress, encryptedKey) {
@@ -119,6 +127,8 @@ $(function() {
 			endProcess($this, $target);
 			return;
 		} 
+
+    jitBugWorkAround();
 
 		try {
 	        Bitcoin.BIP38.ValidateConfirmationAsync(confirmation.val(), passphrase.val(), function(isValid, generatedAddress) {
@@ -161,6 +171,8 @@ $(function() {
 			endProcess($this, $target);
 			return;
 		}
+
+    jitBugWorkAround();
 
 		if (privatekey.val().length != 0) {
 			var compressed = /^[LK]/.test(privatekey.val());
@@ -214,9 +226,22 @@ $(function() {
 
   });
 
-	/**
-	 * Testing Code
-	 */
+  // Hacky work-around
+  var jitBugWorkAround = function(onComplete) {
+    onComplete = onComplete || function() { };
+    if ($.ua.browser.name != "Safari" || jQuery.inArray($.ua.browser.version, ["6.0", "6.0.1", "6.0.2", "6.0.3", "6.0.4", "6.0.5"]) == -1) {
+      onComplete();
+      return;
+    }
+
+    Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync("5KN7MzqK5wt2TP1fQCYyHBtDrXdJuXbUzm4A9rKAteGu3Qi5CVR", "TestingOneTwoThree", false, function() {
+      onComplete();
+    });
+  }
+  
+  /**
+   * Testing Code
+   */
   var runTests = function(testCallback, progressCallback) {
     var failedTestsCount = 0;
     testCallback = testCallback || function() { console.log('... done running tests'); };
@@ -365,13 +390,6 @@ $(function() {
         onComplete();
       }
     }
-
-    var throwAway = function(test, compressed, i, onComplete) {
-      Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(test[2], test[1], compressed,  function(encryptedKey) {
-        onComplete();
-      });
-    }
-
     // running each test uses a lot of memory, which isn't freed
     // immediately, so give the VM a little time to reclaim memory
     var totalTestsCount = 4 + 2 + tests.length + 2 + 5;
@@ -386,7 +404,7 @@ $(function() {
 
     runSerialized([
       function(cb) {
-        throwAway(tests[0], false, 0, waitThenCall(cb));
+        jitBugWorkAround(waitThenCall(cb));
       },
       function(cb) {
         forSerialized(0, 4, function(i, callback) {
