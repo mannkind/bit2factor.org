@@ -75,6 +75,7 @@
     <script src="js/bitcoinjs-lib.eckey.js" type="text/javascript"></script>
     <script src="js/bitcoinjs-lib.util.js" type="text/javascript"></script>
     <script src="js/bitcoin.bip38.js" type="text/javascript"></script>
+    <script src="js/bitcoin.coinmapping.js" type="text/javascript"></script>
     <script src="js/jquery.js" type="text/javascript"></script> 
     <script src="js/bootstrap.js" type="text/javascript"></script>
     <script src="js/uaparser.js" type="text/javascript"></script>
@@ -85,9 +86,9 @@
       <div class="row">&nbsp;</div>
       <div class="row">
         <div class="span12">
-          <h2>Two-Factor Bitcoin</h2>
+          <h2>Two-Factor <span class="coinPlaceholder">Bitcoin</span></h2>
           <p>The <em>only</em> way to do a two-party transaction between untrusted peers (an implementation of <a href="https://en.bitcoin.it/wiki/BIP_0038">BIP38</a>)</p>
-          <p>If you're looking for to do Bitcoin Escrow, checkout <a href="http://www.bitescrow.org">bitescrow.org</a></p>
+          <p>If you're looking for to do <span class="coinPlaceholder">Bitcoin</span> Escrow, checkout <a href="http://www.bitescrow.org">bitescrow.org</a></p>
           <div class="accordion" id="compatibilityNotice">
             <div class="accordion-group">
                 <div class="accordion-heading">
@@ -165,7 +166,7 @@
                             <button id="send-gencon-enc" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate All</a>
                           </div>            
                       <div class="control-group">
-                        <label class="control-label" for="send-gencon-address">Bitcoin Address</label>
+                        <label class="control-label" for="send-gencon-address">Address</label>
                         <div class="controls">
                           <input id="send-gencon-address" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
@@ -292,7 +293,7 @@
                         <button id="encgen-encrypt" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate &amp; Encrypt Private Key</button>
                       </div>
                       <div class="control-group">
-                        <label class="control-label" for="encgen-address">Bitcoin Address</label>
+                        <label class="control-label" for="encgen-address">Address</label>
                         <div class="controls">
                           <input id="encgen-address" placeholder=" ... not yet generated ... " class="span8" />
                         </div>
@@ -308,6 +309,18 @@
                 </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <hr />
+        <div class="span4 offset4">
+            <div class="control-group">
+              <label class="control-label" for="cryptocurrency">Crypto Currency</label>
+              <div class="controls">
+                <select id="cryptocurrency" class="span4"></select>
+              </div>
+            </div>
         </div>
       </div>
 

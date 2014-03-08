@@ -4,6 +4,10 @@ $(function() {
 
   if ($.ua.browser.name!="Safari") { $("#compatibilityNotice").hide(); } 
 
+  $.each(Bitcoin.CoinMapping._mapping, function(coin, obj) {
+    $('#cryptocurrency').append($('<option />').val(coin).text(Bitcoin.CoinMapping.Name(coin)));
+  });
+
   var disableButtons = function(item) { item.parent().children('button').attr('disabled', 'disabled'); };
   var enableButtons = function(item) { item.parent().children('button').attr('disabled', null); };
   var enableSpinner = function(item) { item.button('loading'); };
@@ -177,9 +181,7 @@ $(function() {
     }
 
     if (privatekey.val().length != 0 && 
-       (!/^5[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{50}$/.test(privatekey.val()) &&
-        !/^[LK][123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{51}$/.test(privatekey.val()))) {
-
+        !/^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{51,52}$/.test(privatekey.val())) {
       privatekey.popover({ content: 'Invalid private key' }).popover('show');
       endProcess($this, $target);
       return;
@@ -189,7 +191,7 @@ $(function() {
 
     try {
       if (privatekey.val().length != 0) {
-        var compressed = /^[LK]/.test(privatekey.val());
+        var compressed = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{52}$/.test(privatekey.val());
         Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(privatekey.val(), passphrase.val(), compressed, function(encryptedKey, generatedAddress) {
           $('#encgen-address').val(generatedAddress);
           $('#encgen-privkey').val(encryptedKey);
@@ -223,7 +225,10 @@ $(function() {
       keyboard: false
     });
 
+    var coin = $('#cryptocurrency').val();
+    Bitcoin.CoinMapping.Change('bitcoin');
     runTests(function() {
+      Bitcoin.CoinMapping.Change(coin);
       console.log("... and done!")
       endProcess($this, $target);
     }, function(completedTestsCount, failedTestsCount, totalTestsCount) {
@@ -244,6 +249,19 @@ $(function() {
     });
   });
 
+  $('#cryptocurrency').change(function(e) {
+    switchCryptocurrency($(this).val());
+  });
+
+  var switchCryptocurrency = function(coin) {
+    Bitcoin.CoinMapping.Change(coin);
+
+    $('title').text('Two-Factor ' + Bitcoin.CoinMapping.Name(coin))
+    $('.coinPlaceholder').text(Bitcoin.CoinMapping.Name(coin));
+
+    window.location.hash = "coin=" + coin;
+  };
+
   // Hacky work-around
   var jitBugWorkAround = function(onComplete) {
     onComplete = onComplete || function() { };
@@ -255,7 +273,7 @@ $(function() {
     Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync("5KN7MzqK5wt2TP1fQCYyHBtDrXdJuXbUzm4A9rKAteGu3Qi5CVR", "TestingOneTwoThree", false, function() {
       onComplete();
     });
-  }
+  };
 
   /**
    * Testing Code
@@ -275,7 +293,7 @@ $(function() {
         var f = functions.shift();
         f(function() { runSerialized(functions, onComplete); } );
       }
-    }
+    };
 
     function forSerialized(initial, max, whatToDo, onComplete) {
       onComplete = onComplete || function() {};
@@ -285,7 +303,7 @@ $(function() {
         // same idea as runSerialized
         whatToDo(initial, function() { forSerialized(++initial, max, whatToDo, onComplete); });
       }
-    }
+    };
 
     function foreachSerialized(collection, whatToDo, onComplete) {
       var keys = [];
@@ -295,9 +313,7 @@ $(function() {
       forSerialized(0, keys.length, function(i, callback) {
         whatToDo(keys[i], callback);
       }, onComplete);
-    }
-
-
+    };
 
     var tests = 
     [
@@ -329,7 +345,7 @@ $(function() {
         }
         onComplete();
       });
-    }
+    };
 
     var encryptTest = function(test, compressed, i, onComplete) {
       Bitcoin.BIP38.PrivateKeyToEncryptedKeyAsync(test[2], test[1], compressed,  function(encryptedKey) {
@@ -342,7 +358,7 @@ $(function() {
         }
         onComplete();
       });
-    }
+    };
 
     // test randomly generated encryption-decryption cycle
     var cycleTest = function(i, compress, onComplete) {
@@ -367,7 +383,7 @@ $(function() {
           onComplete();
         });
       });
-    }
+    };
 
     // intermediate test - create some encrypted keys from an intermediate
     // then decrypt them to check that the private keys are recoverable
@@ -393,7 +409,7 @@ $(function() {
           });
         });
       });
-    }
+    };
 
     var confirmationTest = function(test, i, onComplete) {
       if (typeof test[3] != 'undefined') { 
@@ -409,7 +425,7 @@ $(function() {
       } else {
         onComplete();
       }
-    }
+    };
     
     // running each test uses a lot of memory, which isn't freed
     // immediately, so give the VM a little time to reclaim memory
@@ -421,7 +437,7 @@ $(function() {
         progressCallback(completedTestsCount, failedTestsCount, totalTestsCount);
         setTimeout(callback, 1000); 
       }
-    }
+    };
 
     runSerialized([
       function(cb) {
@@ -446,7 +462,7 @@ $(function() {
       },
       function(cb) {
         forSerialized(0, 2, function(i, callback) {
-          cycleTest(i, i % 2? true : false, waitThenCall(callback, true));
+          cycleTest(i, (i == 2 || i == 3 ), waitThenCall(callback, true));
         }, waitThenCall(cb));
       },
       function(cb) {
@@ -455,11 +471,10 @@ $(function() {
         }, cb);
       }
     ], testCallback);
-
   };
 
-  var hash;hash={};window.location.hash.replace(/[?&]+([^=&]+)=([^&]*)/g,function(g,h,i){return hash[h]=i});
-  if (hash['runtests'] == 'true') {
-    runTests();
-  }
+  var hash;hash={};window.location.hash.replace(/[#&]+([^=&]+)=([^&]*)/g,function(g,h,i){return hash[h]=i});
+  var coin = typeof hash['coin'] === 'undefined' ? 'bitcoin' : hash['coin'];
+  switchCryptocurrency(coin)
+  $('#cryptocurrency option[value="' + coin + '"]').attr('selected', true);
 });

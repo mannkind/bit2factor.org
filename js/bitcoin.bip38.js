@@ -171,17 +171,12 @@ Bitcoin.BIP38 = {
 		});
 	},
 	PrivateKeyToEncryptedKeyAsync: function (base58Key, passphrase, compressed, callback) {
-		var privKeyBytes = null;
-	    if (/^5[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{50}$/.test(base58Key)) {
-	      privKeyBytes = Bitcoin.Base58.decode(base58Key);
-	      privKeyBytes.shift();
-	      privKeyBytes = privKeyBytes.slice(0, privKeyBytes.length - 4);
-	    } else if (/^[LK][123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{51}$/.test(base58Key)) {
-	      privKeyBytes = Bitcoin.Base58.decode(base58Key);
-	      privKeyBytes.shift();
-	      privKeyBytes.pop();
-	      privKeyBytes = privKeyBytes.slice(0, privKeyBytes.length - 4);
-	    }
+		var privKeyBytes = Bitcoin.Base58.decode(base58Key);
+		privKeyBytes.shift();
+		if (compressed) {
+			privKeyBytes.pop();
+		}
+		privKeyBytes = privKeyBytes.slice(0, privKeyBytes.length - 4);
 
 		var privKey = new Bitcoin.ECKey(privKeyBytes);
 		privKey.setCompressed(compressed);
